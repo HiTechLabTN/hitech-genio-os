@@ -3,136 +3,208 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0b0f19">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Genio OS — HiTech Autonomous Console</title>
+<meta name="theme-color" content="#050811">
+<title>Genio OS v4.0 Ultimate — HiTech 3D AI Enterprise Studio</title>
 <style>
   :root {
-    --bg-main: #0b0f19;
-    --bg-card: #131b2e;
-    --bg-input: #1c2742;
-    --accent: #00f2fe;
-    --accent-2: #4facfe;
-    --success: #00e676;
-    --danger: #ff5252;
-    --warn: #ffd740;
-    --text: #f1f5f9;
+    --bg-deep: #040710;
+    --bg-glass: rgba(14, 22, 40, 0.78);
+    --bg-card: rgba(22, 33, 58, 0.65);
+    --cyan: #00f2fe;
+    --blue: #4facfe;
+    --purple: #a855f7;
+    --green: #00e676;
+    --amber: #ffd740;
+    --red: #ff5252;
+    --text: #f8fafc;
     --muted: #94a3b8;
-    --border: rgba(0, 242, 254, 0.18);
+    --border: rgba(0, 242, 254, 0.24);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: var(--bg-main);
+    background:
+      radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.12), transparent 35%),
+      radial-gradient(circle at 85% 20%, rgba(168, 85, 247, 0.12), transparent 35%),
+      linear-gradient(180deg, #040710 0%, #091022 100%);
     color: var(--text);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
   }
-  /* Top Header */
+
+  /* 3D Top Command Bar */
   header {
-    background: linear-gradient(90deg, #0f172a, #1e293b);
+    background: rgba(6, 10, 22, 0.88);
+    backdrop-filter: blur(18px);
     border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
+    padding: 12px 18px;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.65);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
-  .brand {
+  .brand-wrap {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 1.2rem;
-    font-weight: 800;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  }
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
+  }
+  .brand-title {
+    font-size: 1.15rem;
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--cyan), #fff, var(--purple));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .status-pills {
+  .brand-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .telemetry-bar {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    font-size: 0.82rem;
+    align-items: center;
   }
   .pill {
     background: var(--bg-card);
     border: 1px solid var(--border);
     padding: 5px 11px;
     border-radius: 999px;
+    font-size: 0.78rem;
     display: flex;
     align-items: center;
     gap: 6px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
   }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
-  .dot.off { background: var(--danger); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .dot.off { background: var(--red); box-shadow: 0 0 10px var(--red); }
 
+  /* Studio Navigation Tabs */
+  .nav-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(8, 13, 26, 0.75);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .tab-btn {
+    background: var(--bg-card);
+    color: var(--muted);
+    border: 1px solid transparent;
+    padding: 9px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.86rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .tab-btn:hover, .tab-btn.active {
+    color: #040710;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.35);
+    transform: translateY(-2px);
+  }
 
-  /* Main Layout */
-  .layout {
-    display: grid;
-    grid-template-columns: 290px 1fr 330px;
-    gap: 14px;
-    padding: 14px;
+  /* Main Container */
+  .studio-section {
+    display: none;
+    padding: 16px;
     flex: 1;
   }
-  @media (max-width: 1024px) {
-    .layout { grid-template-columns: 1fr; }
+  .studio-section.active {
+    display: block;
   }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 310px 1fr;
+    gap: 16px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  @media (max-width: 960px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  /* 3D Glass Panels */
   .panel {
-    background: var(--bg-card);
+    background: var(--bg-glass);
+    backdrop-filter: blur(16px);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
+    border-radius: 16px;
+    padding: 15px;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    box-shadow: 0 14px 35px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
   }
   .panel-title {
     font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--accent);
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-weight: 800;
+    color: var(--cyan);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     padding-bottom: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
-
   /* Agent Cards */
   .agent-card {
     background: rgba(255,255,255,0.03);
-    border: 1px solid transparent;
-    border-radius: 10px;
-    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 10px 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   .agent-card:hover, .agent-card.active {
-    border-color: var(--accent);
-    background: rgba(0, 242, 254, 0.08);
+    border-color: var(--cyan);
+    background: rgba(0, 242, 254, 0.11);
+    transform: translateX(-4px);
+    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.2);
   }
-  .agent-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 700;
-    font-size: 0.92rem;
-  }
-  .agent-sub {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-top: 4px;
+  .badge {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: rgba(168, 85, 247, 0.2);
+    color: #e9d5ff;
+    border: 1px solid rgba(168, 85, 247, 0.4);
   }
 
-
-  /* Console Area */
+  /* Chat Stream */
   .chat-stream {
-    flex: 1;
-    min-height: 380px;
-    max-height: 62vh;
+    min-height: 360px;
+    max-height: 58vh;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -140,323 +212,592 @@
     padding: 6px;
   }
   .msg {
-    background: rgba(255,255,255,0.04);
-    border-right: 3px solid var(--accent);
-    border-radius: 10px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-right: 4px solid var(--cyan);
+    border-radius: 12px;
     padding: 12px;
-    font-size: 0.92rem;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    line-height: 1.65;
   }
   .msg.user {
-    border-right-color: var(--warn);
-    background: rgba(255, 215, 64, 0.06);
+    border-right-color: var(--amber);
+    background: rgba(255, 215, 64, 0.05);
   }
-  .msg pre {
-    direction: ltr;
-    text-align: left;
-    background: #070a12;
-    padding: 10px;
-    border-radius: 8px;
-    overflow-x: auto;
-    font-size: 0.82rem;
-    margin-top: 8px;
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-  .action-badge {
+  .action-chip {
     display: inline-block;
-    background: rgba(0, 230, 118, 0.15);
-    color: var(--success);
-    border: 1px solid var(--success);
-    padding: 3px 8px;
-    border-radius: 6px;
+    background: rgba(0, 230, 118, 0.14);
+    color: var(--green);
+    border: 1px solid var(--green);
+    padding: 3px 9px;
+    border-radius: 7px;
     font-size: 0.75rem;
-    margin: 4px 4px 0 0;
+    margin: 5px 4px 0 0;
     direction: ltr;
   }
 
-
-  /* Controls */
+  /* Inputs & Buttons */
   textarea, input, select {
     width: 100%;
-    background: var(--bg-input);
+    background: rgba(8, 13, 26, 0.9);
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 10px;
+    padding: 10px 12px;
     font-family: inherit;
-    font-size: 0.92rem;
-  }
-  .btn {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    color: #050811;
-    font-weight: 700;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    cursor: pointer;
     font-size: 0.9rem;
-    transition: opacity 0.2s;
+    outline: none;
   }
-  .btn:hover { opacity: 0.9; }
-  .btn.secondary {
-    background: rgba(255,255,255,0.08);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .file-list {
-    max-height: 260px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  .code-editor {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    min-height: 420px;
     direction: ltr;
     text-align: left;
+    color: #a5f3fc;
+    background: #03060c;
+  }
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn {
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    color: #040710;
+    font-weight: 800;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 0.86rem;
+    transition: all 0.2s;
+  }
+  .btn:hover { opacity: 0.92; transform: translateY(-1px); }
+  .btn.purple {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    color: #fff;
+  }
+  .btn.secondary {
+    background: rgba(255,255,255,0.07);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn.danger {
+    background: rgba(255, 82, 82, 0.2);
+    color: var(--red);
+    border: 1px solid var(--red);
   }
   .file-item {
     font-family: monospace;
     font-size: 0.8rem;
-    padding: 6px 8px;
+    padding: 8px 10px;
     background: rgba(255,255,255,0.03);
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
+    direction: ltr;
   }
-  .file-item:hover { background: rgba(0, 242, 254, 0.12); }
+  .file-item:hover { background: rgba(0, 242, 254, 0.14); }
+  .terminal-out {
+    background: #020409;
+    color: #4ade80;
+    font-family: monospace;
+    font-size: 0.82rem;
+    padding: 14px;
+    border-radius: 12px;
+    min-height: 330px;
+    max-height: 55vh;
+    overflow-y: auto;
+    direction: ltr;
+    text-align: left;
+    white-space: pre-wrap;
+    border: 1px solid rgba(74, 222, 128, 0.3);
+  }
 </style>
 </head>
 <body>
 
-
 <header>
-  <div class="brand">⚡ GENIO OS v3.0 — السيرفر المحلي (/data)</div>
-  <div class="status-pills">
-    <div class="pill"><span id="ollamaDot" class="dot"></span> <span id="ollamaText">جاري الفحص...</span></div>
-    <div class="pill">🧠 RAM: <span id="ramText">--</span></div>
-    <div class="pill">💾 /data: <span id="diskText">--</span></div>
-    <div class="pill">🤖 Model: <span id="modelText">--</span></div>
+  <div class="brand-wrap">
+    <div class="brand-logo">⚡</div>
+    <div>
+      <div class="brand-title">GENIO OS v4.0 ULTIMATE</div>
+      <div class="brand-sub">HiTech Lab TN — Autonomous AI Studio (OpenWebUI + OpenCode + Swarm)</div>
+    </div>
+  </div>
+
+  <div class="telemetry-bar">
+    <select id="langSelect" style="width:auto;padding:5px 10px;font-size:0.78rem;" onchange="switchLang()">
+      <option value="tn">🇹🇳 التونسية التقنية</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="fr">🇫🇷 Français</option>
+    </select>
+    <div class="pill"><span id="ollamaDot" class="dot"></span> <span id="ollamaLabel">Ollama...</span></div>
+    <div class="pill">🧠 RAM: <span id="ramLabel">--</span></div>
+    <div class="pill">💾 /data: <span id="diskLabel">--</span></div>
+    <div class="pill">🤖 <span id="activeModelBadge">--</span></div>
   </div>
 </header>
 
+<!-- 5-in-1 Enterprise Studio Navigation -->
+<nav class="nav-tabs">
+  <button class="tab-btn active" onclick="openTab('tab-ops', this)">👑 غرفة العمليات & Swarm</button>
+  <button class="tab-btn" onclick="openTab('tab-ide', this)">💻 استوديو الكود الحي (Live Web IDE)</button>
+  <button class="tab-btn" onclick="openTab('tab-term', this)">🖥️ طرفية السيرفر (Web Terminal)</button>
+  <button class="tab-btn" onclick="openTab('tab-rag', this)">📚 قاعدة المعرفة (RAG Studio)</button>
+  <button class="tab-btn" onclick="openTab('tab-admin', this)">⚙️ لوحة الإدارة والنماذج (Admin & Models)</button>
+</nav>
 
-<div class="layout">
-  <!-- Right Column: Agents & Settings -->
-  <div class="panel">
-    <div class="panel-title">👥 فريق الشركة الافتراضية</div>
-    <div id="agentsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+<!-- TAB 1: OPERATIONS & SWARM -->
+<section id="tab-ops" class="studio-section active">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">👥 الوكلاء المستقلون (Agents)</div>
+      <div id="agentsContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
 
-
-    <div class="panel-title" style="margin-top:10px;">⚙️ إعدادات عقدة Ollama (Legion)</div>
-    <input id="ollamaHostInput" type="text" dir="ltr" placeholder="http://pop-os:11434">
-    <select id="modelSelect" dir="ltr"></select>
-    <button class="btn secondary" onclick="saveSettings()">💾 حفظ وربط العقدة</button>
-
-
-    <div class="panel-title" style="margin-top:10px;">🚀 مهام سريعة (1-Click Autopilot)</div>
-    <button class="btn" onclick="triggerAutopilot()">⚡ بناء مشروع HITECH AI Trainer في /data</button>
-  </div>
-
-
-  <!-- Center Column: Command & Execution Stream -->
-  <div class="panel">
-    <div class="panel-title">
-      <span>💬 غرفة العمليات المركزية (<span id="activeAgentTitle">Genio-Rayes</span>)</span>
-      <span id="spinner" style="display:none;color:var(--warn);">⏳ جاري التنفيذ الفعلي وكتابة الملفات...</span>
+      <div class="panel-title" style="margin-top:8px;">🚀 مهام ذاتية فورية (1-Click Autopilot)</div>
+      <button class="btn" onclick="runAutopilotTrainer()">⚡ بناء مشروع HITECH AI Trainer v2.0</button>
+      <button class="btn purple" onclick="runSwarmMission()">🐝 تشغيل السرب الكامل (Swarm: Rayes ➔ Dev ➔ QA)</button>
     </div>
 
+    <div class="panel">
+      <div class="panel-title">
+        <span>💬 مركز القيادة والكتابة الفعلية في `/data/genio-os/workspace` (<span id="curAgentName">Genio-Rayes</span>)</span>
+        <span id="taskSpinner" style="display:none;color:var(--amber);font-size:0.82rem;">⏳ جاري التنفيذ وكتابة الملفات...</span>
+      </div>
 
-    <div id="chatStream" class="chat-stream">
-      <div class="msg">
-        👋 <b>مرحباً يا عزمي في Genio OS v3.0!</b><br>
-        هذه المنصة تشتغل محلياً 100% على السيرفر <code>tn</code> في المسار <code>/data/genio-os/workspace</code> ومربوطة بـ Ollama على <code>Legion</code>.<br>
-        أي أمر تكتبه هنا سيقوم الوكيل بتحويله مباشرة إلى <b>ملفات حقيقية على القرص</b> مع فحص الأوامر برمجياً بدون أي قيود!
+      <div id="chatStream" class="chat-stream">
+        <div class="msg">
+          👋 <b>مرحباً يا ريس عزمي في النسخة الخارقة Genio OS v4.0 Ultimate!</b><br>
+          جمعنالك في المنصة هذي أقوى مميزات <b>Open WebUI</b> (إدارة النماذج والـ RAG) + <b>OpenCode/Cursor</b> (محرر كود حي وتيرمينال مدمج) + <b>CrewAI/OpenBot</b> (سرب وكلاء يكتب الكود فعلياً على `/data/` ويفحصه برمجياً).<br>
+          اختار وكيل، أو اضغط على <b>🐝 تشغيل السرب الكامل</b> باش يتعاونوا الوكلاء الكل بالتوازي والتسلسل!
+        </div>
+      </div>
+
+      <textarea id="promptBox" rows="3" placeholder="اكتب مهمتك للوكيل أو للسرب... (مثال: اصنع تطبيق ويب متكامل مع قاعدة بيانات SQLite واختبره)"></textarea>
+      <div class="btn-row">
+        <button class="btn" style="flex:2;" onclick="dispatchSingleTask()">🚀 تنفيذ عبر الوكيل المختار</button>
+        <button class="btn purple" style="flex:1;" onclick="runSwarmMission()">🐝 تنفيذ جماعي (Swarm Mode)</button>
       </div>
     </div>
+  </div>
+</section>
 
+<!-- TAB 2: LIVE WEB IDE -->
+<section id="tab-ide" class="studio-section">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">
+        <span>📂 شجرة ملفات `/data/genio-os/workspace`</span>
+        <button class="btn secondary" style="padding:4px 9px;font-size:0.75rem;" onclick="refreshAll()">🔄</button>
+      </div>
+      <input id="newFilePath" type="text" dir="ltr" placeholder="folder/new_file.py">
+      <button class="btn secondary" onclick="createNewFile()">➕ إنشاء / فتح ملف جديد</button>
+      <div id="ideFilesList" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+    </div>
 
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <textarea id="promptInput" rows="3" placeholder="اكتب مهمتك للوكيل... (مثال: اصنع لي ملف train_engine.py كامل يدعم 4-bit QLoRA و MTP داخل مجلد hitech-ai-trainer)"></textarea>
-      <button class="btn" onclick="sendTask()">🚀 تنفيذ المهمة وحفظ الملفات في /data</button>
+    <div class="panel">
+      <div class="panel-title">
+        <span>📝 المحرر البرمجي المباشر: <code id="currentEditPath" style="color:var(--amber);">لم يتم اختيار ملف</code></span>
+        <div class="btn-row">
+          <button class="btn" onclick="saveCurrentFile()">💾 حفظ على القرص (/data)</button>
+          <button class="btn secondary" onclick="runCurrentPythonFile()">▶️ تشغيل وفحص</button>
+          <button class="btn danger" onclick="deleteCurrentFile()">🗑️ حذف</button>
+        </div>
+      </div>
+      <textarea id="codeEditor" class="code-editor" placeholder="اختر ملفاً من القائمة اليسرى لتحريره مباشرة أو أنشئ ملفاً جديداً..."></textarea>
+      <pre id="ideRunOutput" dir="ltr" style="background:#020409;color:#38bdf8;padding:10px;border-radius:8px;font-size:0.78rem;max-height:150px;overflow:auto;display:none;"></pre>
     </div>
   </div>
+</section>
 
-
-  <!-- Left Column: Live /data Workspace Files -->
+<!-- TAB 3: WEB TERMINAL -->
+<section id="tab-term" class="studio-section">
   <div class="panel">
     <div class="panel-title">
-      <span>📂 ملفات `/data/genio-os/workspace`</span>
-      <button class="btn secondary" style="padding:3px 8px;font-size:0.75rem;" onclick="refreshStatus()">🔄</button>
+      <span>🖥️ طرفية السيرفر المباشرة (`tn` — `/data/genio-os/workspace`)</span>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="quickCmd('ls -la')">ls -la</button>
+        <button class="btn secondary" onclick="quickCmd('df -h /data && free -h')">فحص الذاكرة والقرص</button>
+        <button class="btn secondary" onclick="quickCmd('git status')">git status</button>
+        <button class="btn secondary" onclick="quickCmd('tailscale status')">tailscale status</button>
+      </div>
     </div>
-    <div id="filesList" class="file-list"></div>
-
-
-    <div class="panel-title" style="margin-top:8px;">📄 معاينة الملف</div>
-    <pre id="fileViewer" dir="ltr" style="background:#070a12;padding:10px;border-radius:8px;font-size:0.75rem;max-height:260px;overflow:auto;color:#a5f3fc;">اختر ملفاً من القائمة لمعاينته...</pre>
+    <div id="termOutput" class="terminal-out">hitech@tn:/data/genio-os/workspace$ # جاهز لتنفيذ أوامر اللينكس مباشرة...</div>
+    <div class="btn-row">
+      <input id="shellInput" type="text" dir="ltr" placeholder="اكتب أي أمر Bash هنا (مثال: pytest أو python3 script.py)..." onkeydown="if(event.key==='Enter') executeShell()">
+      <button class="btn" onclick="executeShell()">⚡ تنفيذ الأمر</button>
+    </div>
   </div>
-</div>
+</section>
 
+<!-- TAB 4: RAG KNOWLEDGE BASE -->
+<section id="tab-rag" class="studio-section">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">📥 إضافة وثيقة أو كود مرجعي لقاعدة المعرفة (Local RAG)</div>
+      <input id="ragFilename" type="text" dir="ltr" placeholder="architecture_notes.md">
+      <textarea id="ragContent" rows="8" placeholder="الصق هنا أي وثائق تقنية، قوانين مشروع، أو أكواد مرجعية لكي يقرأها الوكلاء تلقائياً قبل الإجابة..."></textarea>
+      <button class="btn" onclick="saveRagDoc()">📚 حفظ في الذاكرة الدائمة (/data/genio-os/rag_docs)</button>
+    </div>
+    <div class="panel">
+      <div class="panel-title">🗂️ الوثائق المدمجة حالياً في ذاكرة الوكلاء</div>
+      <div id="ragDocsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 5: ADMIN & MODELS -->
+<section id="tab-admin" class="studio-section">
+  <div class="grid-3">
+    <!-- Node & Hyperparameters -->
+    <div class="panel">
+      <div class="panel-title">⚙️ إعدادات عقدة Legion والمعاملات</div>
+      <label style="font-size:0.8rem;color:var(--muted);">رابط Ollama عبر Tailscale:</label>
+      <input id="cfgOllamaHost" type="text" dir="ltr">
+      <label style="font-size:0.8rem;color:var(--muted);">النموذج القيادي الافتراضي:</label>
+      <select id="cfgModelSelect" dir="ltr"></select>
+      <label style="font-size:0.8rem;color:var(--muted);">درجة الإبداع (Temperature): <span id="tempVal">0.2</span></label>
+      <input id="cfgTemp" type="range" min="0" max="1" step="0.05" value="0.2" oninput="document.getElementById('tempVal').innerText=this.value">
+      <label style="font-size:0.8rem;color:var(--muted);">نافذة السياق (Context Window num_ctx):</label>
+      <select id="cfgCtx" dir="ltr">
+        <option value="4096">4096 tokens (Fast VRAM)</option>
+        <option value="8192" selected>8192 tokens (Balanced)</option>
+        <option value="16384">16384 tokens (Deep Architect)</option>
+        <option value="32768">32768 tokens (Max Context)</option>
+      </select>
+      <button class="btn" onclick="saveAdminConfig()">💾 حفظ وتطبيق الإعدادات</button>
+    </div>
+
+    <!-- Ollama Model Manager -->
+    <div class="panel">
+      <div class="panel-title">📦 إدارة وتحميل النماذج على Legion</div>
+      <div class="btn-row">
+        <input id="pullModelInput" type="text" dir="ltr" placeholder="مثال: deepseek-coder-v2:16b">
+        <button class="btn purple" onclick="pullOllamaModel()">⬇️ سحب النموذج (Pull)</button>
+      </div>
+      <div id="pullStatus" style="font-size:0.8rem;color:var(--amber);"></div>
+      <div id="modelsDetailList" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- Smart Updater & GitHub Sync -->
+    <div class="panel">
+      <div class="panel-title">🔄 مركز التحديث الذكي (Smart GitHub Updater)</div>
+      <p style="font-size:0.82rem;color:var(--muted);">يفحص مستودع <code>HiTechLabTN/hitech-genio-os</code> ويعلمك بأي ميزات جديدة مع تقرير Changelog كامل.</p>
+      <button class="btn secondary" onclick="checkGitHubUpdates()">🔍 فحص التحديثات الآن</button>
+      <button class="btn" onclick="applyGitHubUpdate()">⚡ سحب التحديثات وتطبيقها (Live Update)</button>
+      <div id="updateBox" style="font-size:0.8rem;background:rgba(0,0,0,0.35);padding:10px;border-radius:8px;direction:ltr;text-align:left;">اضغط "فحص التحديثات" لعرض آخر سجل تغييرات...</div>
+    </div>
+  </div>
+</section>
 
 <script>
 let selectedAgent = "Genio-Rayes";
+let activeFilePath = "";
 
+function openTab(tabId, btn) {
+  document.querySelectorAll(".studio-section").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById(tabId).classList.add("active");
+  btn.classList.add("active");
+}
 
-async function refreshStatus() {
+async function refreshAll() {
   try {
     const r = await fetch("/api/status");
     const data = await r.json();
+    const tel = data.telemetry;
+    const ol = data.ollama;
 
-
-    document.getElementById("ramText").innerText = `${data.telemetry.ram_used_gb}/${data.telemetry.ram_total_gb} GB`;
-    document.getElementById("diskText").innerText = `${data.telemetry.disk_free_gb} GB Free`;
-    document.getElementById("modelText").innerText = data.telemetry.active_model;
-    document.getElementById("ollamaHostInput").value = data.telemetry.ollama_host;
-
+    document.getElementById("ramLabel").innerText = `${tel.ram_used_gb}/${tel.ram_total_gb} GB`;
+    document.getElementById("diskLabel").innerText = `${tel.disk_free_gb} GB Free`;
+    document.getElementById("activeModelBadge").innerText = tel.active_model;
+    document.getElementById("cfgOllamaHost").value = tel.ollama_host;
 
     const dot = document.getElementById("ollamaDot");
-    const oText = document.getElementById("ollamaText");
-    if (data.ollama.online) {
+    const olLabel = document.getElementById("ollamaLabel");
+    if (ol.online) {
       dot.className = "dot";
-      oText.innerText = `Ollama متصل (${data.ollama.models.length} موديل)`;
+      olLabel.innerText = `Legion متصل (${ol.models.length} موديل)`;
     } else {
       dot.className = "dot off";
-      oText.innerText = `Ollama غير متصل`;
+      olLabel.innerText = `Ollama غير متصل`;
     }
 
-
-    // Populate models dropdown
-    const sel = document.getElementById("modelSelect");
-    const models = data.ollama.models.length ? data.ollama.models : [data.telemetry.active_model, "qwen2.5-coder:14b", "qwen2.5-coder:7b", "llama3.1:8b"];
-    sel.innerHTML = models.map(m => `<option value="${m}" ${m === data.telemetry.active_model ? "selected" : ""}>${m}</option>`).join("");
-
-
-    // Render Agents
-    const aDiv = document.getElementById("agentsList");
-    aDiv.innerHTML = Object.entries(data.agents).map(([id, ag]) => `
+    // Agents list
+    const agDiv = document.getElementById("agentsContainer");
+    agDiv.innerHTML = Object.entries(data.agents).map(([id, a]) => `
       <div class="agent-card ${id === selectedAgent ? 'active' : ''}" onclick="selectAgent('${id}')">
-        <div class="agent-header"><span>${ag.icon}</span> <span>${ag.title}</span></div>
+        <div><b>${a.icon} ${a.title}</b></div>
+        <span class="badge">${a.badge}</span>
       </div>
     `).join("");
 
+    // Models Select & Details
+    const sel = document.getElementById("cfgModelSelect");
+    const mList = ol.models.length ? ol.models : [tel.active_model];
+    sel.innerHTML = mList.map(m => `<option value="${m}" ${m === tel.active_model ? 'selected' : ''}>${m}</option>`).join("");
 
-    // Render Files
-    const fDiv = document.getElementById("filesList");
-    if (!data.files.length) {
-      fDiv.innerHTML = `<div style="color:var(--muted);font-size:0.8rem;">المجلد فارغ حالياً</div>`;
-    } else {
-      fDiv.innerHTML = data.files.map(f => `
-        <div class="file-item" onclick="viewFile('${f.path}')">
-          <span>📄 ${f.path}</span>
-          <span style="color:var(--muted);">${f.size_kb} KB</span>
-        </div>
-      `).join("");
-    }
-  } catch (e) {
-    console.error(e);
-  }
+    const mDetail = document.getElementById("modelsDetailList");
+    mDetail.innerHTML = (ol.details || []).map(d => `
+      <div class="file-item">
+        <span>🤖 <b>${d.name}</b> (${d.quant})</span>
+        <span style="color:var(--cyan);">${d.size_gb} GB</span>
+      </div>
+    `).join("");
+
+    // IDE Files List
+    const fDiv = document.getElementById("ideFilesList");
+    fDiv.innerHTML = data.files.length ? data.files.map(f => `
+      <div class="file-item" onclick="loadFileInIde('${f.path}')">
+        <span>📄 ${f.path}</span>
+        <span style="color:var(--muted);">${f.size_kb} KB</span>
+      </div>
+    `).join("") : `<div style="color:var(--muted);font-size:0.82rem;">لا توجد ملفات بعد في workspace</div>`;
+
+    // RAG Docs List
+    const rDiv = document.getElementById("ragDocsList");
+    rDiv.innerHTML = data.rag_docs.length ? data.rag_docs.map(d => `
+      <div class="msg" style="padding:10px;">
+        <b>📘 ${d.name}</b> <span style="color:var(--muted);font-size:0.75rem;">(${d.size_kb} KB)</span>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">${d.preview.replace(/</g,'&lt;')}...</div>
+      </div>
+    `).join("") : `<div style="color:var(--muted);font-size:0.82rem;">لا توجد وثائق مضافة بعد</div>`;
+  } catch (e) { console.error(e); }
 }
-
 
 function selectAgent(id) {
   selectedAgent = id;
-  document.getElementById("activeAgentTitle").innerText = id;
-  refreshStatus();
+  document.getElementById("curAgentName").innerText = id;
+  refreshAll();
 }
 
-
-async function saveSettings() {
-  const host = document.getElementById("ollamaHostInput").value;
-  const model = document.getElementById("modelSelect").value;
-  await fetch("/api/config", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ollama_host: host, primary_model: model})
-  });
-  await refreshStatus();
+function appendChat(role, title, text, actions = [], tps = 0) {
+  const s = document.getElementById("chatStream");
+  const d = document.createElement("div");
+  d.className = "msg " + (role === "user" ? "user" : "");
+  let chips = (actions || []).map(a => {
+    if (a.type === "write_file") return `<span class="action-chip">💾 Saved: ${a.path} (${a.bytes} B)</span>`;
+    if (a.type === "run_cmd") return `<span class="action-chip">⚙️ Cmd: ${a.cmd} (exit ${a.returncode})</span>`;
+    return "";
+  }).join("");
+  const speedBadge = tps > 0 ? `<span class="badge" style="margin-right:8px;">⚡ ${tps} tok/s</span>` : "";
+  const safe = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+  d.innerHTML = `<div><b>${title}</b> ${speedBadge}</div><div style="margin-top:6px;">${safe}</div><div>${chips}</div>`;
+  s.appendChild(d);
+  s.scrollTop = s.scrollHeight;
 }
 
-
-function appendMessage(role, title, text, actions = []) {
-  const stream = document.getElementById("chatStream");
-  const div = document.createElement("div");
-  div.className = "msg " + (role === "user" ? "user" : "");
-  let actionsHtml = "";
-  if (actions && actions.length) {
-    actionsHtml = `<div style="margin-top:8px;">` + actions.map(a => {
-      if (a.type === "write_file") return `<span class="action-badge">✅ Saved: ${a.path} (${a.bytes} B)</span>`;
-      if (a.type === "run_cmd") return `<span class="action-badge">⚙️ Cmd: ${a.cmd} (exit ${a.returncode})</span>`;
-      return "";
-    }).join("") + `</div>`;
-  }
-  const safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
-  div.innerHTML = `<b>${title}:</b><br>${safeText}${actionsHtml}`;
-  stream.appendChild(div);
-  stream.scrollTop = stream.scrollHeight;
-}
-
-
-async function sendTask() {
-  const input = document.getElementById("promptInput");
-  const prompt = input.value.trim();
+async function dispatchSingleTask() {
+  const box = document.getElementById("promptBox");
+  const prompt = box.value.trim();
   if (!prompt) return;
-  input.value = "";
-  appendMessage("user", "أنت (عزمي)", prompt);
-
-
-  document.getElementById("spinner").style.display = "inline";
+  box.value = "";
+  appendChat("user", "🧑‍💻 عزمي (الريس)", prompt);
+  document.getElementById("taskSpinner").style.display = "inline";
   try {
     const r = await fetch("/api/task", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        agent_id: selectedAgent,
-        prompt: prompt,
-        model: document.getElementById("modelSelect").value
-      })
+      body: JSON.stringify({agent_id: selectedAgent, prompt})
     });
     const res = await r.json();
     if (res.ok) {
-      appendMessage("agent", `${res.agent} (${res.elapsed_sec}s)`, res.reply, res.actions);
+      appendChat("agent", `${res.agent} (${res.elapsed_sec}s)`, res.reply, res.actions, res.tokens_per_sec);
     } else {
-      appendMessage("agent", "❌ خطأ", res.error || "Unknown error");
+      appendChat("agent", "❌ تنبيه", res.error);
     }
   } catch (e) {
-    appendMessage("agent", "❌ خطأ اتصال", String(e));
+    appendChat("agent", "❌ خطأ اتصال", String(e));
   }
-  document.getElementById("spinner").style.display = "none";
-  refreshStatus();
+  document.getElementById("taskSpinner").style.display = "none";
+  refreshAll();
 }
 
+async function runSwarmMission() {
+  const box = document.getElementById("promptBox");
+  const mission = box.value.trim() || "Build a complete modular Python FastAPI microservice inside `swarm_app/` with health check and unit test.";
+  box.value = "";
+  appendChat("user", "🐝 Swarm Mission (Rayes ➔ Dev-Lead ➔ QA-Sec)", mission);
+  document.getElementById("taskSpinner").style.display = "inline";
+  try {
+    const r = await fetch("/api/swarm", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({mission})
+    });
+    const data = await r.json();
+    if (data.ok) {
+      for (const st of data.swarm_steps) {
+        appendChat("agent", `🐝 ${st.agent} (${st.elapsed_sec || 0}s)`, st.reply || st.error, st.actions, st.tokens_per_sec);
+      }
+    }
+  } catch (e) {
+    appendChat("agent", "❌ خطأ في السرب", String(e));
+  }
+  document.getElementById("taskSpinner").style.display = "none";
+  refreshAll();
+}
 
-async function triggerAutopilot() {
-  appendMessage("user", "⚡ Autopilot", "بناء وتجهيز مشروع HITECH AI Trainer v2.0 في /data/genio-os/workspace");
-  document.getElementById("spinner").style.display = "inline";
+async function runAutopilotTrainer() {
+  appendChat("user", "⚡ 1-Click Autopilot", "بناء مشروع HITECH AI Trainer v2.0 الكامل في /data/genio-os/workspace/hitech-ai-trainer");
+  document.getElementById("taskSpinner").style.display = "inline";
   const r = await fetch("/api/autopilot/hitech-trainer", {method: "POST"});
   const res = await r.json();
-  document.getElementById("spinner").style.display = "none";
-  if (res.ok) {
-    appendMessage("agent", `Dev-Lead (${res.elapsed_sec}s)`, res.reply, res.actions);
-  } else {
-    appendMessage("agent", "❌ تنبيه", res.error || "تأكد من تشغيل Ollama على Legion");
-  }
-  refreshStatus();
+  document.getElementById("taskSpinner").style.display = "none";
+  appendChat("agent", `Dev-Lead (${res.elapsed_sec || 0}s)`, res.reply || res.error, res.actions, res.tokens_per_sec);
+  refreshAll();
 }
 
-
-async function viewFile(path) {
-  const r = await fetch("/api/file", {
+// Live Web IDE functions
+async function loadFileInIde(path) {
+  const r = await fetch("/api/file/read", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({path})
   });
-  const data = await r.json();
-  if (data.ok) {
-    document.getElementById("fileViewer").innerText = data.content;
+  const d = await r.json();
+  if (d.ok) {
+    activeFilePath = d.path;
+    document.getElementById("currentEditPath").innerText = d.path;
+    document.getElementById("codeEditor").value = d.content;
   }
 }
 
+function createNewFile() {
+  const p = document.getElementById("newFilePath").value.trim();
+  if (!p) return;
+  activeFilePath = p;
+  document.getElementById("currentEditPath").innerText = p;
+  document.getElementById("codeEditor").value = "# New file: " + p + "\n";
+}
 
-refreshStatus();
-setInterval(refreshStatus, 8000);
+async function saveCurrentFile() {
+  if (!activeFilePath) return alert("اختر ملفاً أو اكتب اسم ملف جديد أولاً");
+  const content = document.getElementById("codeEditor").value;
+  await fetch("/api/file/save", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({path: activeFilePath, content})
+  });
+  refreshAll();
+}
+
+async function runCurrentPythonFile() {
+  if (!activeFilePath) return;
+  await saveCurrentFile();
+  const outBox = document.getElementById("ideRunOutput");
+  outBox.style.display = "block";
+  outBox.innerText = "⏳ Running " + activeFilePath + "...";
+  const r = await fetch("/api/shell", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({cmd: `python3 "${activeFilePath}"`})
+  });
+  const d = await r.json();
+  outBox.innerText = d.output || "(Exit 0 — No stdout)";
+}
+
+async function deleteCurrentFile() {
+  if (!activeFilePath || !confirm("حذف الملف " + activeFilePath + "؟")) return;
+  await fetch("/api/file/delete", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({path: activeFilePath})
+  });
+  activeFilePath = "";
+  document.getElementById("currentEditPath").innerText = "لم يتم اختيار ملف";
+  document.getElementById("codeEditor").value = "";
+  refreshAll();
+}
+
+// Terminal functions
+async function executeShell() {
+  const inp = document.getElementById("shellInput");
+  const cmd = inp.value.trim();
+  if (!cmd) return;
+  inp.value = "";
+  await quickCmd(cmd);
+}
+
+async function quickCmd(cmd) {
+  const out = document.getElementById("termOutput");
+  out.innerText += `\n\nhitech@tn:/data/genio-os/workspace$ ${cmd}\n⏳ Running...`;
+  const r = await fetch("/api/shell", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({cmd})
+  });
+  const d = await r.json();
+  out.innerText = out.innerText.replace("⏳ Running...", d.output || "(Done)");
+  out.scrollTop = out.scrollHeight;
+}
+
+// RAG functions
+async function saveRagDoc() {
+  const filename = document.getElementById("ragFilename").value.trim();
+  const content = document.getElementById("ragContent").value.trim();
+  if (!filename || !content) return;
+  await fetch("/api/rag/add", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({filename, content})
+  });
+  document.getElementById("ragFilename").value = "";
+  document.getElementById("ragContent").value = "";
+  refreshAll();
+}
+
+// Admin functions
+async function saveAdminConfig() {
+  await fetch("/api/config", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      ollama_host: document.getElementById("cfgOllamaHost").value,
+      primary_model: document.getElementById("cfgModelSelect").value,
+      temperature: parseFloat(document.getElementById("cfgTemp").value),
+      num_ctx: parseInt(document.getElementById("cfgCtx").value)
+    })
+  });
+  refreshAll();
+}
+
+async function pullOllamaModel() {
+  const name = document.getElementById("pullModelInput").value.trim();
+  if (!name) return;
+  document.getElementById("pullStatus").innerText = `⏳ جاري سحب النموذج ${name} على Legion...`;
+  const r = await fetch("/api/models/pull", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({model_name: name})
+  });
+  const d = await r.json();
+  document.getElementById("pullStatus").innerText = d.ok ? `✅ تم تحميل ${name} بنجاح!` : `❌ خطأ: ${d.error}`;
+  refreshAll();
+}
+
+async function checkGitHubUpdates() {
+  const box = document.getElementById("updateBox");
+  box.innerText = "🔍 Checking GitHub origin/main...";
+  const r = await fetch("/api/update/check");
+  const d = await r.json();
+  box.innerText = `Local: ${d.local_hash || 'N/A'} | Remote: ${d.remote_hash || 'N/A'}\nUpdate Available: ${d.update_available} (${d.commits_behind} commits behind)\n\nRecent Commits:\n` + (d.changelog || []).join("\n");
+}
+
+async function applyGitHubUpdate() {
+  const box = document.getElementById("updateBox");
+  box.innerText = "⚡ Pulling latest updates from GitHub...";
+  const r = await fetch("/api/update/apply", {method: "POST"});
+  const d = await r.json();
+  box.innerText = d.ok ? `✅ Updated:\n${d.output}` : `❌ Error:\n${d.error}`;
+}
+
+refreshAll();
+setInterval(refreshAll, 9000);
 </script>
 </body>
 </html>
