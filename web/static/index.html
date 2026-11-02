@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b0f19">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Genio OS — HiTech Autonomous Console</title>
+<style>
+  :root {
+    --bg-main: #0b0f19;
+    --bg-card: #131b2e;
+    --bg-input: #1c2742;
+    --accent: #00f2fe;
+    --accent-2: #4facfe;
+    --success: #00e676;
+    --danger: #ff5252;
+    --warn: #ffd740;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: rgba(0, 242, 254, 0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-main);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Top Header */
+  header {
+    background: linear-gradient(90deg, #0f172a, #1e293b);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .status-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.82rem;
+  }
+  .pill {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 5px 11px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .dot.off { background: var(--danger); }
+
+
+  /* Main Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 290px 1fr 330px;
+    gap: 14px;
+    padding: 14px;
+    flex: 1;
+  }
+  @media (max-width: 1024px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .panel-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--accent);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+
+  /* Agent Cards */
+  .agent-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .agent-card:hover, .agent-card.active {
+    border-color: var(--accent);
+    background: rgba(0, 242, 254, 0.08);
+  }
+  .agent-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .agent-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+
+  /* Console Area */
+  .chat-stream {
+    flex: 1;
+    min-height: 380px;
+    max-height: 62vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 6px;
+  }
+  .msg {
+    background: rgba(255,255,255,0.04);
+    border-right: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+  .msg.user {
+    border-right-color: var(--warn);
+    background: rgba(255, 215, 64, 0.06);
+  }
+  .msg pre {
+    direction: ltr;
+    text-align: left;
+    background: #070a12;
+    padding: 10px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    margin-top: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .action-badge {
+    display: inline-block;
+    background: rgba(0, 230, 118, 0.15);
+    color: var(--success);
+    border: 1px solid var(--success);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    margin: 4px 4px 0 0;
+    direction: ltr;
+  }
+
+
+  /* Controls */
+  textarea, input, select {
+    width: 100%;
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 0.92rem;
+  }
+  .btn {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: #050811;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn.secondary {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .file-list {
+    max-height: 260px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    direction: ltr;
+    text-align: left;
+  }
+  .file-item {
+    font-family: monospace;
+    font-size: 0.8rem;
+    padding: 6px 8px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+  }
+  .file-item:hover { background: rgba(0, 242, 254, 0.12); }
+</style>
+</head>
+<body>
+
+
+<header>
+  <div class="brand">⚡ GENIO OS v3.0 — السيرفر المحلي (/data)</div>
+  <div class="status-pills">
+    <div class="pill"><span id="ollamaDot" class="dot"></span> <span id="ollamaText">جاري الفحص...</span></div>
+    <div class="pill">🧠 RAM: <span id="ramText">--</span></div>
+    <div class="pill">💾 /data: <span id="diskText">--</span></div>
+    <div class="pill">🤖 Model: <span id="modelText">--</span></div>
+  </div>
+</header>
+
+
+<div class="layout">
+  <!-- Right Column: Agents & Settings -->
+  <div class="panel">
+    <div class="panel-title">👥 فريق الشركة الافتراضية</div>
+    <div id="agentsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+
+
+    <div class="panel-title" style="margin-top:10px;">⚙️ إعدادات عقدة Ollama (Legion)</div>
+    <input id="ollamaHostInput" type="text" dir="ltr" placeholder="http://pop-os:11434">
+    <select id="modelSelect" dir="ltr"></select>
+    <button class="btn secondary" onclick="saveSettings()">💾 حفظ وربط العقدة</button>
+
+
+    <div class="panel-title" style="margin-top:10px;">🚀 مهام سريعة (1-Click Autopilot)</div>
+    <button class="btn" onclick="triggerAutopilot()">⚡ بناء مشروع HITECH AI Trainer في /data</button>
+  </div>
+
+
+  <!-- Center Column: Command & Execution Stream -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>💬 غرفة العمليات المركزية (<span id="activeAgentTitle">Genio-Rayes</span>)</span>
+      <span id="spinner" style="display:none;color:var(--warn);">⏳ جاري التنفيذ الفعلي وكتابة الملفات...</span>
+    </div>
+
+
+    <div id="chatStream" class="chat-stream">
+      <div class="msg">
+        👋 <b>مرحباً يا عزمي في Genio OS v3.0!</b><br>
+        هذه المنصة تشتغل محلياً 100% على السيرفر <code>tn</code> في المسار <code>/data/genio-os/workspace</code> ومربوطة بـ Ollama على <code>Legion</code>.<br>
+        أي أمر تكتبه هنا سيقوم الوكيل بتحويله مباشرة إلى <b>ملفات حقيقية على القرص</b> مع فحص الأوامر برمجياً بدون أي قيود!
+      </div>
+    </div>
+
+
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <textarea id="promptInput" rows="3" placeholder="اكتب مهمتك للوكيل... (مثال: اصنع لي ملف train_engine.py كامل يدعم 4-bit QLoRA و MTP داخل مجلد hitech-ai-trainer)"></textarea>
+      <button class="btn" onclick="sendTask()">🚀 تنفيذ المهمة وحفظ الملفات في /data</button>
+    </div>
+  </div>
+
+
+  <!-- Left Column: Live /data Workspace Files -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>📂 ملفات `/data/genio-os/workspace`</span>
+      <button class="btn secondary" style="padding:3px 8px;font-size:0.75rem;" onclick="refreshStatus()">🔄</button>
+    </div>
+    <div id="filesList" class="file-list"></div>
+
+
+    <div class="panel-title" style="margin-top:8px;">📄 معاينة الملف</div>
+    <pre id="fileViewer" dir="ltr" style="background:#070a12;padding:10px;border-radius:8px;font-size:0.75rem;max-height:260px;overflow:auto;color:#a5f3fc;">اختر ملفاً من القائمة لمعاينته...</pre>
+  </div>
+</div>
+
+
+<script>
+let selectedAgent = "Genio-Rayes";
+
+
+async function refreshStatus() {
+  try {
+    const r = await fetch("/api/status");
+    const data = await r.json();
+
+
+    document.getElementById("ramText").innerText = `${data.telemetry.ram_used_gb}/${data.telemetry.ram_total_gb} GB`;
+    document.getElementById("diskText").innerText = `${data.telemetry.disk_free_gb} GB Free`;
+    document.getElementById("modelText").innerText = data.telemetry.active_model;
+    document.getElementById("ollamaHostInput").value = data.telemetry.ollama_host;
+
+
+    const dot = document.getElementById("ollamaDot");
+    const oText = document.getElementById("ollamaText");
+    if (data.ollama.online) {
+      dot.className = "dot";
+      oText.innerText = `Ollama متصل (${data.ollama.models.length} موديل)`;
+    } else {
+      dot.className = "dot off";
+      oText.innerText = `Ollama غير متصل`;
+    }
+
+
+    // Populate models dropdown
+    const sel = document.getElementById("modelSelect");
+    const models = data.ollama.models.length ? data.ollama.models : [data.telemetry.active_model, "qwen2.5-coder:14b", "qwen2.5-coder:7b", "llama3.1:8b"];
+    sel.innerHTML = models.map(m => `<option value="${m}" ${m === data.telemetry.active_model ? "selected" : ""}>${m}</option>`).join("");
+
+
+    // Render Agents
+    const aDiv = document.getElementById("agentsList");
+    aDiv.innerHTML = Object.entries(data.agents).map(([id, ag]) => `
+      <div class="agent-card ${id === selectedAgent ? 'active' : ''}" onclick="selectAgent('${id}')">
+        <div class="agent-header"><span>${ag.icon}</span> <span>${ag.title}</span></div>
+      </div>
+    `).join("");
+
+
+    // Render Files
+    const fDiv = document.getElementById("filesList");
+    if (!data.files.length) {
+      fDiv.innerHTML = `<div style="color:var(--muted);font-size:0.8rem;">المجلد فارغ حالياً</div>`;
+    } else {
+      fDiv.innerHTML = data.files.map(f => `
+        <div class="file-item" onclick="viewFile('${f.path}')">
+          <span>📄 ${f.path}</span>
+          <span style="color:var(--muted);">${f.size_kb} KB</span>
+        </div>
+      `).join("");
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+
+function selectAgent(id) {
+  selectedAgent = id;
+  document.getElementById("activeAgentTitle").innerText = id;
+  refreshStatus();
+}
+
+
+async function saveSettings() {
+  const host = document.getElementById("ollamaHostInput").value;
+  const model = document.getElementById("modelSelect").value;
+  await fetch("/api/config", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ollama_host: host, primary_model: model})
+  });
+  await refreshStatus();
+}
+
+
+function appendMessage(role, title, text, actions = []) {
+  const stream = document.getElementById("chatStream");
+  const div = document.createElement("div");
+  div.className = "msg " + (role === "user" ? "user" : "");
+  let actionsHtml = "";
+  if (actions && actions.length) {
+    actionsHtml = `<div style="margin-top:8px;">` + actions.map(a => {
+      if (a.type === "write_file") return `<span class="action-badge">✅ Saved: ${a.path} (${a.bytes} B)</span>`;
+      if (a.type === "run_cmd") return `<span class="action-badge">⚙️ Cmd: ${a.cmd} (exit ${a.returncode})</span>`;
+      return "";
+    }).join("") + `</div>`;
+  }
+  const safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+  div.innerHTML = `<b>${title}:</b><br>${safeText}${actionsHtml}`;
+  stream.appendChild(div);
+  stream.scrollTop = stream.scrollHeight;
+}
+
+
+async function sendTask() {
+  const input = document.getElementById("promptInput");
+  const prompt = input.value.trim();
+  if (!prompt) return;
+  input.value = "";
+  appendMessage("user", "أنت (عزمي)", prompt);
+
+
+  document.getElementById("spinner").style.display = "inline";
+  try {
+    const r = await fetch("/api/task", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        agent_id: selectedAgent,
+        prompt: prompt,
+        model: document.getElementById("modelSelect").value
+      })
+    });
+    const res = await r.json();
+    if (res.ok) {
+      appendMessage("agent", `${res.agent} (${res.elapsed_sec}s)`, res.reply, res.actions);
+    } else {
+      appendMessage("agent", "❌ خطأ", res.error || "Unknown error");
+    }
+  } catch (e) {
+    appendMessage("agent", "❌ خطأ اتصال", String(e));
+  }
+  document.getElementById("spinner").style.display = "none";
+  refreshStatus();
+}
+
+
+async function triggerAutopilot() {
+  appendMessage("user", "⚡ Autopilot", "بناء وتجهيز مشروع HITECH AI Trainer v2.0 في /data/genio-os/workspace");
+  document.getElementById("spinner").style.display = "inline";
+  const r = await fetch("/api/autopilot/hitech-trainer", {method: "POST"});
+  const res = await r.json();
+  document.getElementById("spinner").style.display = "none";
+  if (res.ok) {
+    appendMessage("agent", `Dev-Lead (${res.elapsed_sec}s)`, res.reply, res.actions);
+  } else {
+    appendMessage("agent", "❌ تنبيه", res.error || "تأكد من تشغيل Ollama على Legion");
+  }
+  refreshStatus();
+}
+
+
+async function viewFile(path) {
+  const r = await fetch("/api/file", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({path})
+  });
+  const data = await r.json();
+  if (data.ok) {
+    document.getElementById("fileViewer").innerText = data.content;
+  }
+}
+
+
+refreshStatus();
+setInterval(refreshStatus, 8000);
+</script>
+</body>
+</html>
