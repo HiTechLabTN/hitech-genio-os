@@ -1,18 +1,14 @@
-# ⚡ Genio OS (`hitech-genio-os`) — Autonomous Local AI Enterprise
+# ⚡ Genio OS v4.0 Ultimate (`hitech-genio-os`)
+**Autonomous Local AI Enterprise Studio** — مصممة في **HiTech Lab TN** لتجمع قوة `Open WebUI` + `OpenCode / Cursor` + `CrewAI / OpenBot` في منصة محلية واحدة بدون أي قيود (100% Local Authority).
 
+## 🌟 الميزات الخارقة في الإصدار v4.0 Ultimate
+1. **غرفة عمليات وسرب وكلاء (Multi-Agent Swarm):** تنفيذ متسلسل وتعاوني (`Genio-Rayes` ➔ `Dev-Lead` ➔ `QA-Sec`) يكتب الكود الفعلي مباشرة في `/data/genio-os/workspace`.
+2. **استوديو كود حي مدمج (Live Web IDE):** تصفح، تحرير، حفظ، وتشغيل ملفات البايثون والمشاريع مباشرة من المتصفح أو الهاتف.
+3. **طرفية ويب تفاعلية (Integrated Web Terminal):** تنفيذ أوامر اللينكس والـ Git وفحص العتاد مباشرة من الواجهة.
+4. **قاعدة معرفة محلية (RAG Knowledge Studio):** رفع الوثائق والمراجع التقنية ليدمجها الوكلاء تلقائياً في سياق البرمجة.
+5. **لوحة إدارة النماذج والتحديث الذكي (Admin & Model Manager):** التحكم في `Temperature`، `Context Window`، سحب نماذج جديدة على `Legion`، وتحديث المنصة بضغطة زر.
 
-منصة ذكاء اصطناعي محلية ومستقلة 100% صممت في **HiTech Lab TN** لتعويض `OpenBot` و `OpenCode` بدون أي قيود استخدام يومية (Zero Rate Limits).
-
-
-## 🚀 المميزات الرئيسية
-- **هندسة موزعة عبر Tailscale:** تفصل بين عقدة التخزين والتطبيقات (`/data/genio-os` على السيرفر `tn`) وعقدة المعالجة الرسومية (`Ollama` على `Legion`).
-- **تنفيذ حقيقي للملفات والأوامر:** الوكلاء (`Genio-Rayes`, `Dev-Lead`, `Infra-Ops`, `QA-Sec`, `Vision-UI`) يكتبون الكود مباشرة على القرص ويفحصونه برمجياً.
-- **واجهة ويب وموبايل (PWA) + واجهة طرفية (Rich TUI):** تحكم كامل من الهاتف المحمول (RedMagic) أو المتصفح على المنفذ `8090`.
-
-
-## 🛠️ التثبيت السريع على أي ماكينة (1-Command Install)
+## 🚀 التثبيت أو التحديث السريع بأمر واحد (1-Command Smart Installer)
 ```bash
-git clone https://github.com/HiTechLabTN/hitech-genio-os.git /data/genio-os
-cd /data/genio-os
-bash install_genio_os.sh
+git clone https://github.com/HiTechLabTN/hitech-genio-os.git /tmp/genio-installer && bash /tmp/genio-installer/install_genio_os.sh
 ```
