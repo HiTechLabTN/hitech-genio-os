@@ -1,14 +1,15 @@
 {
-  "version": "4.0.0-Ultimate",
-  "enterprise_name": "Genio OS v4.0 — HiTech Autonomous Studio",
+  "version": "5.0.0-Singularity",
+  "enterprise_name": "Genio OS v5.0 — Self-Evolving Studio",
   "node_name": "tn",
   "ollama_host": "http://pop-os:11434",
   "primary_model": "qwen2.5-coder:14b",
   "vision_model": "minicpm-v:latest",
   "workspace_dir": "/data/genio-os/workspace",
   "rag_dir": "/data/genio-os/rag_docs",
+  "memory_dir": "/data/genio-os/memory",
   "port": 8099,
   "temperature": 0.2,
   "num_ctx": 8192,
-  "auto_update_check": true
+  "auto_self_heal_retries": 2
 }
