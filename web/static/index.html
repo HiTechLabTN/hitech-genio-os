@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#050811">
-<title>Genio OS v4.0 Ultimate — HiTech 3D AI Enterprise Studio</title>
+<meta name="theme-color" content="#040710">
+<title>Genio OS v5.0 Singularity — Live Streaming & Self-Evolving AI</title>
 <style>
   :root {
     --bg-deep: #040710;
-    --bg-glass: rgba(14, 22, 40, 0.78);
-    --bg-card: rgba(22, 33, 58, 0.65);
+    --bg-glass: rgba(14, 22, 40, 0.82);
+    --bg-card: rgba(22, 33, 58, 0.68);
     --cyan: #00f2fe;
     --blue: #4facfe;
     --purple: #a855f7;
@@ -18,14 +18,14 @@
     --red: #ff5252;
     --text: #f8fafc;
     --muted: #94a3b8;
-    --border: rgba(0, 242, 254, 0.24);
+    --border: rgba(0, 242, 254, 0.25);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background:
-      radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.12), transparent 35%),
-      radial-gradient(circle at 85% 20%, rgba(168, 85, 247, 0.12), transparent 35%),
+      radial-gradient(circle at 12% 15%, rgba(0, 242, 254, 0.13), transparent 35%),
+      radial-gradient(circle at 88% 20%, rgba(168, 85, 247, 0.13), transparent 35%),
       linear-gradient(180deg, #040710 0%, #091022 100%);
     color: var(--text);
     min-height: 100vh;
@@ -34,286 +34,153 @@
     overflow-x: hidden;
   }
 
-  /* 3D Top Command Bar */
   header {
-    background: rgba(6, 10, 22, 0.88);
+    background: rgba(6, 10, 22, 0.9);
     backdrop-filter: blur(18px);
     border-bottom: 1px solid var(--border);
-    padding: 12px 18px;
+    padding: 11px 16px;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.65);
     position: sticky;
     top: 0;
     z-index: 100;
   }
-  .brand-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .brand-wrap { display: flex; align-items: center; gap: 10px; }
   .brand-logo {
-    width: 38px;
-    height: 38px;
-    border-radius: 11px;
+    width: 36px; height: 36px; border-radius: 10px;
     background: linear-gradient(135deg, var(--cyan), var(--purple));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; box-shadow: 0 0 18px rgba(0, 242, 254, 0.5);
   }
   .brand-title {
-    font-size: 1.15rem;
-    font-weight: 900;
+    font-size: 1.1rem; font-weight: 900;
     background: linear-gradient(90deg, var(--cyan), #fff, var(--purple));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
-  .brand-sub {
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
-  .telemetry-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
+  .brand-sub { font-size: 0.7rem; color: var(--muted); }
+  .telemetry-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .pill {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 5px 11px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 999px; font-size: 0.75rem;
+    display: flex; align-items: center; gap: 5px;
   }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
-  .dot.off { background: var(--red); box-shadow: 0 0 10px var(--red); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot.off { background: var(--red); box-shadow: 0 0 8px var(--red); }
 
-  /* Studio Navigation Tabs */
   .nav-tabs {
-    display: flex;
-    overflow-x: auto;
-    gap: 8px;
-    padding: 10px 18px;
-    background: rgba(8, 13, 26, 0.75);
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex; overflow-x: auto; gap: 8px; padding: 10px 16px;
+    background: rgba(8, 13, 26, 0.8); border-bottom: 1px solid rgba(255,255,255,0.07);
   }
   .tab-btn {
-    background: var(--bg-card);
-    color: var(--muted);
-    border: 1px solid transparent;
-    padding: 9px 16px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.86rem;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    gap: 7px;
+    background: var(--bg-card); color: var(--muted); border: 1px solid transparent;
+    padding: 8px 14px; border-radius: 11px; font-weight: 700; font-size: 0.83rem;
+    cursor: pointer; white-space: nowrap; transition: all 0.2s;
   }
   .tab-btn:hover, .tab-btn.active {
-    color: #040710;
-    background: linear-gradient(135deg, var(--cyan), var(--blue));
-    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.35);
-    transform: translateY(-2px);
+    color: #040710; background: linear-gradient(135deg, var(--cyan), var(--blue));
+    box-shadow: 0 5px 18px rgba(0, 242, 254, 0.35);
   }
 
-  /* Main Container */
-  .studio-section {
-    display: none;
-    padding: 16px;
-    flex: 1;
-  }
-  .studio-section.active {
-    display: block;
-  }
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 310px 1fr;
-    gap: 16px;
-  }
-  .grid-3 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-  }
-  @media (max-width: 960px) {
-    .grid-2 { grid-template-columns: 1fr; }
-  }
+  .studio-section { display: none; padding: 14px; flex: 1; }
+  .studio-section.active { display: block; }
+  .grid-2 { display: grid; grid-template-columns: 300px 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
 
-  /* 3D Glass Panels */
   .panel {
-    background: var(--bg-glass);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 14px 35px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+    background: var(--bg-glass); backdrop-filter: blur(16px);
+    border: 1px solid var(--border); border-radius: 15px; padding: 14px;
+    display: flex; flex-direction: column; gap: 11px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
   }
   .panel-title {
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: var(--cyan);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    padding-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    font-size: 0.92rem; font-weight: 800; color: var(--cyan);
+    border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 7px;
+    display: flex; justify-content: space-between; align-items: center;
   }
 
-  /* Agent Cards */
   .agent-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    padding: 10px 12px;
-    cursor: pointer;
-    transition: all 0.25s;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 11px; padding: 9px 11px; cursor: pointer; transition: all 0.2s;
+    display: flex; justify-content: space-between; align-items: center; font-size: 0.86rem;
   }
   .agent-card:hover, .agent-card.active {
-    border-color: var(--cyan);
-    background: rgba(0, 242, 254, 0.11);
-    transform: translateX(-4px);
-    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.2);
+    border-color: var(--cyan); background: rgba(0, 242, 254, 0.12);
   }
   .badge {
-    font-size: 0.68rem;
-    padding: 2px 8px;
-    border-radius: 99px;
-    background: rgba(168, 85, 247, 0.2);
-    color: #e9d5ff;
-    border: 1px solid rgba(168, 85, 247, 0.4);
+    font-size: 0.66rem; padding: 2px 7px; border-radius: 99px;
+    background: rgba(168, 85, 247, 0.22); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.4);
   }
 
-  /* Chat Stream */
-  .chat-stream {
-    min-height: 360px;
-    max-height: 58vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 6px;
-  }
-  .msg {
-    background: rgba(255,255,255,0.035);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-right: 4px solid var(--cyan);
+  /* Live Behind-The-Scenes Telemetry Box */
+  .live-kawaliss {
+    background: #02050b;
+    border: 1px solid rgba(0, 242, 254, 0.35);
     border-radius: 12px;
-    padding: 12px;
-    font-size: 0.9rem;
-    line-height: 1.65;
-  }
-  .msg.user {
-    border-right-color: var(--amber);
-    background: rgba(255, 215, 64, 0.05);
-  }
-  .action-chip {
-    display: inline-block;
-    background: rgba(0, 230, 118, 0.14);
-    color: var(--green);
-    border: 1px solid var(--green);
-    padding: 3px 9px;
-    border-radius: 7px;
-    font-size: 0.75rem;
-    margin: 5px 4px 0 0;
-    direction: ltr;
-  }
-
-  /* Inputs & Buttons */
-  textarea, input, select {
-    width: 100%;
-    background: rgba(8, 13, 26, 0.9);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 10px;
     padding: 10px 12px;
-    font-family: inherit;
-    font-size: 0.9rem;
-    outline: none;
-  }
-  .code-editor {
-    font-family: 'Fira Code', monospace;
-    font-size: 0.84rem;
-    line-height: 1.5;
-    min-height: 420px;
+    font-family: monospace;
+    font-size: 0.78rem;
+    max-height: 150px;
+    overflow-y: auto;
+    color: #38bdf8;
     direction: ltr;
     text-align: left;
-    color: #a5f3fc;
-    background: #03060c;
   }
-  .btn-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+  .kawaliss-line { margin-bottom: 4px; }
+  .kawaliss-heal { color: var(--amber); font-weight: bold; }
+  .kawaliss-action { color: var(--green); font-weight: bold; }
+
+  .chat-stream {
+    min-height: 310px; max-height: 52vh; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 11px; padding: 4px;
   }
+  .msg {
+    background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.07);
+    border-right: 4px solid var(--cyan); border-radius: 11px; padding: 11px;
+    font-size: 0.88rem; line-height: 1.6;
+  }
+  .msg.user { border-right-color: var(--amber); background: rgba(255, 215, 64, 0.05); }
+  .action-chip {
+    display: inline-block; background: rgba(0, 230, 118, 0.14); color: var(--green);
+    border: 1px solid var(--green); padding: 2px 8px; border-radius: 6px;
+    font-size: 0.73rem; margin: 4px 4px 0 0; direction: ltr;
+  }
+  .action-chip.err {
+    background: rgba(255, 82, 82, 0.15); color: var(--red); border-color: var(--red);
+  }
+
+  textarea, input, select {
+    width: 100%; background: rgba(8, 13, 26, 0.92); color: var(--text);
+    border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px;
+    font-family: inherit; font-size: 0.88rem; outline: none;
+  }
+  .code-editor {
+    font-family: monospace; font-size: 0.82rem; line-height: 1.5;
+    min-height: 390px; direction: ltr; text-align: left; color: #a5f3fc; background: #03060c;
+  }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .btn {
-    background: linear-gradient(135deg, var(--cyan), var(--blue));
-    color: #040710;
-    font-weight: 800;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 0.86rem;
-    transition: all 0.2s;
+    background: linear-gradient(135deg, var(--cyan), var(--blue)); color: #040710;
+    font-weight: 800; border: none; border-radius: 9px; padding: 9px 14px;
+    cursor: pointer; font-size: 0.84rem; transition: all 0.2s;
   }
-  .btn:hover { opacity: 0.92; transform: translateY(-1px); }
-  .btn.purple {
-    background: linear-gradient(135deg, #a855f7, #ec4899);
-    color: #fff;
-  }
-  .btn.secondary {
-    background: rgba(255,255,255,0.07);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .btn.danger {
-    background: rgba(255, 82, 82, 0.2);
-    color: var(--red);
-    border: 1px solid var(--red);
-  }
+  .btn.purple { background: linear-gradient(135deg, #a855f7, #ec4899); color: #fff; }
+  .btn.secondary { background: rgba(255,255,255,0.07); color: var(--text); border: 1px solid var(--border); }
+  .btn.danger { background: rgba(255, 82, 82, 0.2); color: var(--red); border: 1px solid var(--red); }
+
   .file-item {
-    font-family: monospace;
-    font-size: 0.8rem;
-    padding: 8px 10px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    direction: ltr;
+    font-family: monospace; font-size: 0.78rem; padding: 7px 9px;
+    background: rgba(255,255,255,0.03); border-radius: 7px; cursor: pointer;
+    display: flex; justify-content: space-between; direction: ltr;
   }
   .file-item:hover { background: rgba(0, 242, 254, 0.14); }
   .terminal-out {
-    background: #020409;
-    color: #4ade80;
-    font-family: monospace;
-    font-size: 0.82rem;
-    padding: 14px;
-    border-radius: 12px;
-    min-height: 330px;
-    max-height: 55vh;
-    overflow-y: auto;
-    direction: ltr;
-    text-align: left;
-    white-space: pre-wrap;
+    background: #020409; color: #4ade80; font-family: monospace; font-size: 0.8rem;
+    padding: 12px; border-radius: 11px; min-height: 300px; max-height: 52vh;
+    overflow-y: auto; direction: ltr; text-align: left; white-space: pre-wrap;
     border: 1px solid rgba(74, 222, 128, 0.3);
   }
 </style>
@@ -322,174 +189,199 @@
 
 <header>
   <div class="brand-wrap">
-    <div class="brand-logo">⚡</div>
+    <div class="brand-logo">🧠</div>
     <div>
-      <div class="brand-title">GENIO OS v4.0 ULTIMATE</div>
-      <div class="brand-sub">HiTech Lab TN — Autonomous AI Studio (OpenWebUI + OpenCode + Swarm)</div>
+      <div class="brand-title">GENIO OS v5.0 SINGULARITY</div>
+      <div class="brand-sub">Live Behind-The-Scenes Stream • Self-Evolving JSON Memory • Autonomous Swarm</div>
     </div>
   </div>
 
   <div class="telemetry-bar">
-    <select id="langSelect" style="width:auto;padding:5px 10px;font-size:0.78rem;" onchange="switchLang()">
-      <option value="tn">🇹🇳 التونسية التقنية</option>
-      <option value="en">🇬🇧 English</option>
-      <option value="fr">🇫🇷 Français</option>
-    </select>
     <div class="pill"><span id="ollamaDot" class="dot"></span> <span id="ollamaLabel">Ollama...</span></div>
     <div class="pill">🧠 RAM: <span id="ramLabel">--</span></div>
     <div class="pill">💾 /data: <span id="diskLabel">--</span></div>
-    <div class="pill">🤖 <span id="activeModelBadge">--</span></div>
+    <div class="pill">📚 Playbooks: <span id="pbCountLabel">0</span> | 🛠️ Fixes: <span id="fixCountLabel">0</span></div>
   </div>
 </header>
 
-<!-- 5-in-1 Enterprise Studio Navigation -->
 <nav class="nav-tabs">
-  <button class="tab-btn active" onclick="openTab('tab-ops', this)">👑 غرفة العمليات & Swarm</button>
+  <button class="tab-btn active" onclick="openTab('tab-ops', this)">👑 غرفة العمليات & البث الحي للكواليس</button>
+  <button class="tab-btn" onclick="openTab('tab-memory', this)">🧠 الذاكرة التطورية وسجل JSON (Self-Learning)</button>
   <button class="tab-btn" onclick="openTab('tab-ide', this)">💻 استوديو الكود الحي (Live Web IDE)</button>
   <button class="tab-btn" onclick="openTab('tab-term', this)">🖥️ طرفية السيرفر (Web Terminal)</button>
-  <button class="tab-btn" onclick="openTab('tab-rag', this)">📚 قاعدة المعرفة (RAG Studio)</button>
-  <button class="tab-btn" onclick="openTab('tab-admin', this)">⚙️ لوحة الإدارة والنماذج (Admin & Models)</button>
+  <button class="tab-btn" onclick="openTab('tab-rag', this)">📚 قاعدة المعرفة (RAG)</button>
+  <button class="tab-btn" onclick="openTab('tab-admin', this)">⚙️ الإدارة والنماذج</button>
 </nav>
 
-<!-- TAB 1: OPERATIONS & SWARM -->
+<!-- TAB 1: OPERATIONS + REAL-TIME STREAMING -->
 <section id="tab-ops" class="studio-section active">
   <div class="grid-2">
     <div class="panel">
       <div class="panel-title">👥 الوكلاء المستقلون (Agents)</div>
-      <div id="agentsContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="agentsContainer" style="display:flex;flex-direction:column;gap:7px;"></div>
 
-      <div class="panel-title" style="margin-top:8px;">🚀 مهام ذاتية فورية (1-Click Autopilot)</div>
-      <button class="btn" onclick="runAutopilotTrainer()">⚡ بناء مشروع HITECH AI Trainer v2.0</button>
-      <button class="btn purple" onclick="runSwarmMission()">🐝 تشغيل السرب الكامل (Swarm: Rayes ➔ Dev ➔ QA)</button>
+      <div class="panel-title" style="margin-top:6px;">🚀 تشغيل السرب والمشاريع (Live Stream)</div>
+      <button class="btn purple" onclick="runSwarmLive()">🐝 إطلاق السرب الحي (Rayes ➔ Dev ➔ QA)</button>
     </div>
 
     <div class="panel">
       <div class="panel-title">
-        <span>💬 مركز القيادة والكتابة الفعلية في `/data/genio-os/workspace` (<span id="curAgentName">Genio-Rayes</span>)</span>
-        <span id="taskSpinner" style="display:none;color:var(--amber);font-size:0.82rem;">⏳ جاري التنفيذ وكتابة الملفات...</span>
+        <span>📡 رادار الكواليس المباشر (Live Behind-The-Scenes Activity Monitor)</span>
+        <span id="liveTokenCounter" style="color:var(--green);font-size:0.78rem;">جاهز للبث الحي</span>
+      </div>
+      <div id="kawalissBox" class="live-kawaliss">
+        <div class="kawaliss-line">[System] Genio OS v5.0 Live Stream Ready. Any task will stream tokens, file writes, shell checks, and auto-heals in real time...</div>
       </div>
 
+      <div class="panel-title">
+        <span>💬 سجل التنفيذ المباشر (<span id="curAgentName">Genio-Rayes</span>)</span>
+      </div>
       <div id="chatStream" class="chat-stream">
         <div class="msg">
-          👋 <b>مرحباً يا ريس عزمي في النسخة الخارقة Genio OS v4.0 Ultimate!</b><br>
-          جمعنالك في المنصة هذي أقوى مميزات <b>Open WebUI</b> (إدارة النماذج والـ RAG) + <b>OpenCode/Cursor</b> (محرر كود حي وتيرمينال مدمج) + <b>CrewAI/OpenBot</b> (سرب وكلاء يكتب الكود فعلياً على `/data/` ويفحصه برمجياً).<br>
-          اختار وكيل، أو اضغط على <b>🐝 تشغيل السرب الكامل</b> باش يتعاونوا الوكلاء الكل بالتوازي والتسلسل!
+          👋 <b>مرحباً يا ريس عزمي في الإصدار التطوري Genio OS v5.0 Singularity!</b><br>
+          • <b>بث حي للكواليس (Zero Timeout):</b> تشوف كل كلمة تتكتب وكل ملف يتصنع لحظة بلحظة بدون انقطاع.<br>
+          • <b>تعلم ذاتي وإصلاح تلقائي (Self-Healing):</b> إذا غلط الوكيل في Syntax أو أمر، يصلّح روحو وحدو ويحفظ الدرس في <code>experience_ledger.jsonl</code> و <code>playbooks.json</code> باش ما عادش يعاود الغلطة ويبني على خبراته السابقة!
         </div>
       </div>
 
-      <textarea id="promptBox" rows="3" placeholder="اكتب مهمتك للوكيل أو للسرب... (مثال: اصنع تطبيق ويب متكامل مع قاعدة بيانات SQLite واختبره)"></textarea>
+      <textarea id="promptBox" rows="3" placeholder="اكتب مهمتك للوكيل أو للسرب... (سترى كل خطوة في رادار الكواليس المباشر لحظة بلحظة)"></textarea>
       <div class="btn-row">
-        <button class="btn" style="flex:2;" onclick="dispatchSingleTask()">🚀 تنفيذ عبر الوكيل المختار</button>
-        <button class="btn purple" style="flex:1;" onclick="runSwarmMission()">🐝 تنفيذ جماعي (Swarm Mode)</button>
+        <button class="btn" style="flex:2;" onclick="streamSingleAgentTask()">⚡ بث مباشر وتنفيذ عبر الوكيل المختار</button>
+        <button class="btn purple" style="flex:1;" onclick="runSwarmLive()">🐝 بث السرب الكامل (Swarm Stream)</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- TAB 2: LIVE WEB IDE -->
+<!-- TAB 2: SELF-EVOLVING MEMORY & JSONL LEDGER -->
+<section id="tab-memory" class="studio-section">
+  <div class="grid-3">
+    <!-- Learned Playbooks -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>📘 الـ Playbooks والخبرات المكتسبة تلقائياً</span>
+        <button class="btn secondary" style="padding:3px 8px;font-size:0.72rem;" onclick="loadMemoryTab()">🔄</button>
+      </div>
+      <input id="pbTitle" type="text" placeholder="عنوان القاعدة أو الخبرة (مثال: إعداد Gradio 4-bit)">
+      <textarea id="pbPattern" rows="3" placeholder="اكتب القاعدة أو الكود المرجعي ليطبقه الوكلاء دائماً بدون إعادة تفكير..."></textarea>
+      <button class="btn" onclick="addManualPlaybook()">➕ ترسيخ القاعدة في ذاكرة الوكلاء</button>
+      <div id="playbooksList" style="display:flex;flex-direction:column;gap:8px;max-height:330px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- Error Resolutions -->
+    <div class="panel">
+      <div class="panel-title">🩹 سجل الأخطاء وطريقة إصلاحها وتجاوزها</div>
+      <input id="errSig" type="text" placeholder="نوع الخطأ (مثال: ModuleNotFoundError / Port in use)">
+      <input id="errTarget" type="text" placeholder="الملف أو الأمر المعني">
+      <textarea id="errRes" rows="2" placeholder="كيف تم إصلاحه؟ (سيحفظ كدرس دائم للوكلاء)"></textarea>
+      <button class="btn purple" onclick="addManualResolution()">🛠️ تسجيل طريقة الإصلاح في الذاكرة</button>
+      <div id="resolutionsList" style="display:flex;flex-direction:column;gap:8px;max-height:330px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- Raw JSONL Experience Ledger -->
+    <div class="panel">
+      <div class="panel-title">📊 السجل الخام للعمليات (`experience_ledger.jsonl`)</div>
+      <p style="font-size:0.76rem;color:var(--muted);">يُسجل كل عملية، سرعة التوليد، الملفات المكتوبة، والأخطاء بصيغة JSONL لمعالجتها وتطوير الوكلاء.</p>
+      <pre id="ledgerViewer" dir="ltr" style="background:#020409;color:#a5f3fc;padding:10px;border-radius:10px;font-size:0.74rem;max-height:430px;overflow:auto;"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 3: LIVE WEB IDE -->
 <section id="tab-ide" class="studio-section">
   <div class="grid-2">
     <div class="panel">
       <div class="panel-title">
-        <span>📂 شجرة ملفات `/data/genio-os/workspace`</span>
-        <button class="btn secondary" style="padding:4px 9px;font-size:0.75rem;" onclick="refreshAll()">🔄</button>
+        <span>📂 ملفات `/data/genio-os/workspace`</span>
+        <button class="btn secondary" style="padding:3px 8px;font-size:0.75rem;" onclick="refreshAll()">🔄</button>
       </div>
       <input id="newFilePath" type="text" dir="ltr" placeholder="folder/new_file.py">
-      <button class="btn secondary" onclick="createNewFile()">➕ إنشاء / فتح ملف جديد</button>
-      <div id="ideFilesList" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+      <button class="btn secondary" onclick="createNewFile()">➕ إنشاء / فتح ملف</button>
+      <div id="ideFilesList" style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;"></div>
     </div>
 
     <div class="panel">
       <div class="panel-title">
-        <span>📝 المحرر البرمجي المباشر: <code id="currentEditPath" style="color:var(--amber);">لم يتم اختيار ملف</code></span>
+        <span>📝 محرر الكود: <code id="currentEditPath" style="color:var(--amber);">اختر ملفاً</code></span>
         <div class="btn-row">
-          <button class="btn" onclick="saveCurrentFile()">💾 حفظ على القرص (/data)</button>
+          <button class="btn" onclick="saveCurrentFile()">💾 حفظ (يتعلم الوكيل من تعديلك)</button>
           <button class="btn secondary" onclick="runCurrentPythonFile()">▶️ تشغيل وفحص</button>
           <button class="btn danger" onclick="deleteCurrentFile()">🗑️ حذف</button>
         </div>
       </div>
-      <textarea id="codeEditor" class="code-editor" placeholder="اختر ملفاً من القائمة اليسرى لتحريره مباشرة أو أنشئ ملفاً جديداً..."></textarea>
+      <textarea id="codeEditor" class="code-editor"></textarea>
       <pre id="ideRunOutput" dir="ltr" style="background:#020409;color:#38bdf8;padding:10px;border-radius:8px;font-size:0.78rem;max-height:150px;overflow:auto;display:none;"></pre>
     </div>
   </div>
 </section>
 
-<!-- TAB 3: WEB TERMINAL -->
+<!-- TAB 4: WEB TERMINAL -->
 <section id="tab-term" class="studio-section">
   <div class="panel">
     <div class="panel-title">
-      <span>🖥️ طرفية السيرفر المباشرة (`tn` — `/data/genio-os/workspace`)</span>
+      <span>🖥️ طرفية السيرفر (`tn` — `/data/genio-os/workspace`)</span>
       <div class="btn-row">
         <button class="btn secondary" onclick="quickCmd('ls -la')">ls -la</button>
-        <button class="btn secondary" onclick="quickCmd('df -h /data && free -h')">فحص الذاكرة والقرص</button>
-        <button class="btn secondary" onclick="quickCmd('git status')">git status</button>
-        <button class="btn secondary" onclick="quickCmd('tailscale status')">tailscale status</button>
+        <button class="btn secondary" onclick="quickCmd('df -h /data && free -h')">الذاكرة والقرص</button>
+        <button class="btn secondary" onclick="quickCmd('cat /data/genio-os/memory/playbooks.json')">عرض Playbooks JSON</button>
       </div>
     </div>
-    <div id="termOutput" class="terminal-out">hitech@tn:/data/genio-os/workspace$ # جاهز لتنفيذ أوامر اللينكس مباشرة...</div>
+    <div id="termOutput" class="terminal-out">hitech@tn:/data/genio-os/workspace$ # جاهز...</div>
     <div class="btn-row">
-      <input id="shellInput" type="text" dir="ltr" placeholder="اكتب أي أمر Bash هنا (مثال: pytest أو python3 script.py)..." onkeydown="if(event.key==='Enter') executeShell()">
-      <button class="btn" onclick="executeShell()">⚡ تنفيذ الأمر</button>
+      <input id="shellInput" type="text" dir="ltr" placeholder="اكتب أمر لينكس..." onkeydown="if(event.key==='Enter') executeShell()">
+      <button class="btn" onclick="executeShell()">⚡ تنفيذ</button>
     </div>
   </div>
 </section>
 
-<!-- TAB 4: RAG KNOWLEDGE BASE -->
+<!-- TAB 5: RAG STUDIO -->
 <section id="tab-rag" class="studio-section">
   <div class="grid-2">
     <div class="panel">
-      <div class="panel-title">📥 إضافة وثيقة أو كود مرجعي لقاعدة المعرفة (Local RAG)</div>
-      <input id="ragFilename" type="text" dir="ltr" placeholder="architecture_notes.md">
-      <textarea id="ragContent" rows="8" placeholder="الصق هنا أي وثائق تقنية، قوانين مشروع، أو أكواد مرجعية لكي يقرأها الوكلاء تلقائياً قبل الإجابة..."></textarea>
-      <button class="btn" onclick="saveRagDoc()">📚 حفظ في الذاكرة الدائمة (/data/genio-os/rag_docs)</button>
+      <div class="panel-title">📥 إضافة وثيقة لقاعدة المعرفة (Local RAG)</div>
+      <input id="ragFilename" type="text" dir="ltr" placeholder="project_spec.md">
+      <textarea id="ragContent" rows="8" placeholder="الصق الوثائق التقنية أو المراجع هنا..."></textarea>
+      <button class="btn" onclick="saveRagDoc()">📚 حفظ في `/data/genio-os/rag_docs`</button>
     </div>
     <div class="panel">
-      <div class="panel-title">🗂️ الوثائق المدمجة حالياً في ذاكرة الوكلاء</div>
+      <div class="panel-title">🗂️ الوثائق المدمجة حالياً</div>
       <div id="ragDocsList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
   </div>
 </section>
 
-<!-- TAB 5: ADMIN & MODELS -->
+<!-- TAB 6: ADMIN & MODELS -->
 <section id="tab-admin" class="studio-section">
   <div class="grid-3">
-    <!-- Node & Hyperparameters -->
     <div class="panel">
-      <div class="panel-title">⚙️ إعدادات عقدة Legion والمعاملات</div>
-      <label style="font-size:0.8rem;color:var(--muted);">رابط Ollama عبر Tailscale:</label>
+      <div class="panel-title">⚙️ إعدادات عقدة Legion</div>
       <input id="cfgOllamaHost" type="text" dir="ltr">
-      <label style="font-size:0.8rem;color:var(--muted);">النموذج القيادي الافتراضي:</label>
       <select id="cfgModelSelect" dir="ltr"></select>
-      <label style="font-size:0.8rem;color:var(--muted);">درجة الإبداع (Temperature): <span id="tempVal">0.2</span></label>
+      <label style="font-size:0.8rem;color:var(--muted);">Temperature: <span id="tempVal">0.2</span></label>
       <input id="cfgTemp" type="range" min="0" max="1" step="0.05" value="0.2" oninput="document.getElementById('tempVal').innerText=this.value">
-      <label style="font-size:0.8rem;color:var(--muted);">نافذة السياق (Context Window num_ctx):</label>
       <select id="cfgCtx" dir="ltr">
-        <option value="4096">4096 tokens (Fast VRAM)</option>
-        <option value="8192" selected>8192 tokens (Balanced)</option>
-        <option value="16384">16384 tokens (Deep Architect)</option>
-        <option value="32768">32768 tokens (Max Context)</option>
+        <option value="4096">4096 tokens</option>
+        <option value="8192" selected>8192 tokens</option>
+        <option value="16384">16384 tokens</option>
       </select>
-      <button class="btn" onclick="saveAdminConfig()">💾 حفظ وتطبيق الإعدادات</button>
+      <button class="btn" onclick="saveAdminConfig()">💾 حفظ الإعدادات</button>
     </div>
 
-    <!-- Ollama Model Manager -->
     <div class="panel">
-      <div class="panel-title">📦 إدارة وتحميل النماذج على Legion</div>
+      <div class="panel-title">📦 سحب نماذج جديدة على Legion</div>
       <div class="btn-row">
-        <input id="pullModelInput" type="text" dir="ltr" placeholder="مثال: deepseek-coder-v2:16b">
-        <button class="btn purple" onclick="pullOllamaModel()">⬇️ سحب النموذج (Pull)</button>
+        <input id="pullModelInput" type="text" dir="ltr" placeholder="qwen2.5-coder:14b">
+        <button class="btn purple" onclick="pullOllamaModel()">⬇️ Pull</button>
       </div>
       <div id="pullStatus" style="font-size:0.8rem;color:var(--amber);"></div>
-      <div id="modelsDetailList" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+      <div id="modelsDetailList" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;"></div>
     </div>
 
-    <!-- Smart Updater & GitHub Sync -->
     <div class="panel">
-      <div class="panel-title">🔄 مركز التحديث الذكي (Smart GitHub Updater)</div>
-      <p style="font-size:0.82rem;color:var(--muted);">يفحص مستودع <code>HiTechLabTN/hitech-genio-os</code> ويعلمك بأي ميزات جديدة مع تقرير Changelog كامل.</p>
-      <button class="btn secondary" onclick="checkGitHubUpdates()">🔍 فحص التحديثات الآن</button>
-      <button class="btn" onclick="applyGitHubUpdate()">⚡ سحب التحديثات وتطبيقها (Live Update)</button>
-      <div id="updateBox" style="font-size:0.8rem;background:rgba(0,0,0,0.35);padding:10px;border-radius:8px;direction:ltr;text-align:left;">اضغط "فحص التحديثات" لعرض آخر سجل تغييرات...</div>
+      <div class="panel-title">🔄 التحديث الذكي (GitHub Sync)</div>
+      <button class="btn secondary" onclick="checkGitHubUpdates()">🔍 فحص التحديثات</button>
+      <button class="btn" onclick="applyGitHubUpdate()">⚡ تطبيق التحديث الآن</button>
+      <div id="updateBox" style="font-size:0.78rem;background:rgba(0,0,0,0.35);padding:10px;border-radius:8px;direction:ltr;text-align:left;">جاهز...</div>
     </div>
   </div>
 </section>
@@ -503,6 +395,177 @@ function openTab(tabId, btn) {
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
   document.getElementById(tabId).classList.add("active");
   btn.classList.add("active");
+  if (tabId === "tab-memory") loadMemoryTab();
+}
+
+function logKawaliss(htmlLine, cls = "kawaliss-line") {
+  const box = document.getElementById("kawalissBox");
+  const d = document.createElement("div");
+  d.className = cls;
+  d.innerHTML = `[${new Date().toLocaleTimeString()}] ${htmlLine}`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function cleanPromptText(txt) {
+  return (txt || "").replace(/\[span_\d+\]\((start|end)_span\)/g, "").trim();
+}
+
+async function streamAgentTask(agentId, rawPrompt) {
+  const prompt = cleanPromptText(rawPrompt);
+  if (!prompt) return;
+
+  // Create live message bubble in chatStream
+  const stream = document.getElementById("chatStream");
+  const msgDiv = document.createElement("div");
+  msgDiv.className = "msg";
+  msgDiv.innerHTML = `<div><b>🤖 ${agentId}</b> <span class="badge" id="liveBadge">⏳ يبث مباشرة...</span></div><div class="live-body" style="margin-top:6px;white-space:pre-wrap;"></div><div class="live-actions" style="margin-top:6px;"></div>`;
+  stream.appendChild(msgDiv);
+  const bodyEl = msgDiv.querySelector(".live-body");
+  const actEl = msgDiv.querySelector(".live-actions");
+  const badgeEl = msgDiv.querySelector("#liveBadge");
+
+  logKawaliss(`🚀 Starting live stream for <b>${agentId}</b>...`);
+
+  try {
+    const response = await fetch("/api/task/stream", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({agent_id: agentId, prompt})
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop();
+
+      for (const part of parts) {
+        if (!part.startsWith("data: ")) continue;
+        const ev = JSON.parse(part.slice(6));
+
+        if (ev.event === "stage") {
+          logKawaliss(ev.message);
+          document.getElementById("liveTokenCounter").innerText = ev.message;
+        } else if (ev.event === "token") {
+          bodyEl.textContent += ev.token;
+          if (ev.count % 8 === 0) {
+            document.getElementById("liveTokenCounter").innerText = `⚡ [${agentId}] يكتب الكود حياً (${ev.count} tokens)...`;
+            stream.scrollTop = stream.scrollHeight;
+          }
+        } else if (ev.event === "action") {
+          const a = ev.action;
+          if (a.type === "write_file") {
+            const isErr = a.status === "syntax_error";
+            logKawaliss(`💾 Wrote file: <b>${a.path}</b> (${a.bytes} B) — Status: ${a.status}`, isErr ? "kawaliss-heal" : "kawaliss-action");
+            actEl.innerHTML += `<span class="action-chip ${isErr?'err':''}">💾 ${a.path} (${a.status})</span>`;
+          } else if (a.type === "run_cmd") {
+            const isErr = a.status === "error";
+            logKawaliss(`⚙️ Ran cmd: <code>${a.cmd}</code> (exit ${a.returncode})`, isErr ? "kawaliss-heal" : "kawaliss-action");
+            actEl.innerHTML += `<span class="action-chip ${isErr?'err':''}">⚙️ ${a.cmd} (exit ${a.returncode})</span>`;
+          } else if (a.type === "learn_rule") {
+            logKawaliss(`🧠 Memorized new Playbook rule: <b>${a.title}</b>`, "kawaliss-action");
+            actEl.innerHTML += `<span class="action-chip">🧠 Learned: ${a.title}</span>`;
+          }
+        } else if (ev.event === "heal") {
+          logKawaliss(ev.message, "kawaliss-heal");
+          bodyEl.textContent += `\n\n🩹 [إصلاح ذاتي تلقائي - المحاولة ${ev.attempt}]: جاري تصحيح الخطأ وتوثيقه...\n`;
+        } else if (ev.event === "done") {
+          badgeEl.innerText = `✅ ${ev.elapsed_sec}s | ⚡ ${ev.tokens_per_sec} tok/s`;
+          logKawaliss(ev.message, "kawaliss-action");
+          document.getElementById("liveTokenCounter").innerText = ev.message;
+          refreshAll();
+        } else if (ev.event === "error") {
+          badgeEl.innerText = "❌ خطأ";
+          bodyEl.textContent += "\n❌ " + ev.error;
+          logKawaliss("❌ " + ev.error, "kawaliss-heal");
+        }
+      }
+    }
+  } catch (e) {
+    logKawaliss(`⚠️ Stream interrupted: ${e}`, "kawaliss-heal");
+  }
+}
+
+async function streamSingleAgentTask() {
+  const box = document.getElementById("promptBox");
+  const raw = box.value.trim();
+  if (!raw) return;
+  box.value = "";
+  const s = document.getElementById("chatStream");
+  s.innerHTML += `<div class="msg user"><b>🧑‍💻 عزمي (الريس):</b><br>${cleanPromptText(raw).replace(/</g,'&lt;')}</div>`;
+  await streamAgentTask(selectedAgent, raw);
+}
+
+async function runSwarmLive() {
+  const box = document.getElementById("promptBox");
+  const mission = cleanPromptText(box.value.trim()) || "Build a complete modular Python FastAPI project inside `hitech_service/` with `app.py`, `test_app.py`, and `ROADMAP.md`, then verify syntax.";
+  box.value = "";
+  const s = document.getElementById("chatStream");
+  s.innerHTML += `<div class="msg user"><b>🐝 مهمة سرب كاملة (Rayes ➔ Dev-Lead ➔ QA-Sec):</b><br>${mission.replace(/</g,'&lt;')}</div>`;
+
+  await streamAgentTask("Genio-Rayes", `SWARM STEP 1 (Architecture & Playbook Check): Design the architecture and write ROADMAP.md via <write_file path="ROADMAP.md"> for:\n${mission}`);
+  await streamAgentTask("Dev-Lead", `SWARM STEP 2 (Full Code Implementation): Write all complete production files using <write_file path="..."> and record any reusable playbook rule via <learn_rule title="..."> for:\n${mission}`);
+  await streamAgentTask("QA-Sec", `SWARM STEP 3 (Audit & Self-Healing): Test all generated files in the workspace using <run_cmd>python3 -m py_compile ...</run_cmd>, fix any issues, and save lessons learned via <learn_rule title="...">.`);
+}
+
+async function loadMemoryTab() {
+  const r = await fetch("/api/memory");
+  const d = await r.json();
+  document.getElementById("pbCountLabel").innerText = d.stats.playbooks_count;
+  document.getElementById("fixCountLabel").innerText = d.stats.error_fixes_count;
+
+  document.getElementById("playbooksList").innerHTML = d.playbooks.map(p => `
+    <div class="msg" style="padding:9px;">
+      <div><b>📘 ${p.title}</b> <span class="badge">${p.agent} (${p.uses}x)</span></div>
+      <div style="font-size:0.8rem;color:#cbd5e1;margin-top:4px;">${p.pattern.replace(/</g,'&lt;')}</div>
+    </div>
+  `).join("");
+
+  document.getElementById("resolutionsList").innerHTML = d.error_resolutions.length ? d.error_resolutions.map(e => `
+    <div class="msg" style="padding:9px;border-right-color:var(--amber);">
+      <div><b>🩹 ${e.target}</b> <span class="badge">${e.fixed_by}</span></div>
+      <div style="font-size:0.76rem;color:var(--red);margin-top:3px;">Error: ${e.error_signature.replace(/</g,'&lt;')}</div>
+      <div style="font-size:0.78rem;color:var(--green);margin-top:3px;">Fix: ${e.resolution.replace(/</g,'&lt;')}</div>
+    </div>
+  `).join("") : `<div style="color:var(--muted);font-size:0.8rem;">لا توجد أخطاء مسجلة بعد</div>`;
+
+  document.getElementById("ledgerViewer").textContent = d.ledger.map(x => JSON.stringify(x)).join("\n\n");
+}
+
+async function addManualPlaybook() {
+  const title = document.getElementById("pbTitle").value.trim();
+  const pattern = document.getElementById("pbPattern").value.trim();
+  if (!title || !pattern) return;
+  await fetch("/api/memory/playbook", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({title, pattern, agent: "Azmi (Master Rule)"})
+  });
+  document.getElementById("pbTitle").value = "";
+  document.getElementById("pbPattern").value = "";
+  loadMemoryTab();
+}
+
+async function addManualResolution() {
+  const error_signature = document.getElementById("errSig").value.trim();
+  const target = document.getElementById("errTarget").value.trim();
+  const resolution = document.getElementById("errRes").value.trim();
+  if (!error_signature || !resolution) return;
+  await fetch("/api/memory/resolution", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({error_signature, target, resolution})
+  });
+  document.getElementById("errSig").value = "";
+  document.getElementById("errTarget").value = "";
+  document.getElementById("errRes").value = "";
+  loadMemoryTab();
 }
 
 async function refreshAll() {
@@ -514,58 +577,43 @@ async function refreshAll() {
 
     document.getElementById("ramLabel").innerText = `${tel.ram_used_gb}/${tel.ram_total_gb} GB`;
     document.getElementById("diskLabel").innerText = `${tel.disk_free_gb} GB Free`;
-    document.getElementById("activeModelBadge").innerText = tel.active_model;
+    if (tel.memory_stats) {
+      document.getElementById("pbCountLabel").innerText = tel.memory_stats.playbooks_count;
+      document.getElementById("fixCountLabel").innerText = tel.memory_stats.error_fixes_count;
+    }
     document.getElementById("cfgOllamaHost").value = tel.ollama_host;
 
     const dot = document.getElementById("ollamaDot");
     const olLabel = document.getElementById("ollamaLabel");
     if (ol.online) {
       dot.className = "dot";
-      olLabel.innerText = `Legion متصل (${ol.models.length} موديل)`;
+      olLabel.innerText = `Legion (${ol.models.length} موديل)`;
     } else {
       dot.className = "dot off";
       olLabel.innerText = `Ollama غير متصل`;
     }
 
-    // Agents list
-    const agDiv = document.getElementById("agentsContainer");
-    agDiv.innerHTML = Object.entries(data.agents).map(([id, a]) => `
+    document.getElementById("agentsContainer").innerHTML = Object.entries(data.agents).map(([id, a]) => `
       <div class="agent-card ${id === selectedAgent ? 'active' : ''}" onclick="selectAgent('${id}')">
         <div><b>${a.icon} ${a.title}</b></div>
         <span class="badge">${a.badge}</span>
       </div>
     `).join("");
 
-    // Models Select & Details
     const sel = document.getElementById("cfgModelSelect");
     const mList = ol.models.length ? ol.models : [tel.active_model];
     sel.innerHTML = mList.map(m => `<option value="${m}" ${m === tel.active_model ? 'selected' : ''}>${m}</option>`).join("");
 
-    const mDetail = document.getElementById("modelsDetailList");
-    mDetail.innerHTML = (ol.details || []).map(d => `
-      <div class="file-item">
-        <span>🤖 <b>${d.name}</b> (${d.quant})</span>
-        <span style="color:var(--cyan);">${d.size_gb} GB</span>
-      </div>
-    `).join("");
-
-    // IDE Files List
-    const fDiv = document.getElementById("ideFilesList");
-    fDiv.innerHTML = data.files.length ? data.files.map(f => `
+    document.getElementById("ideFilesList").innerHTML = data.files.length ? data.files.map(f => `
       <div class="file-item" onclick="loadFileInIde('${f.path}')">
         <span>📄 ${f.path}</span>
         <span style="color:var(--muted);">${f.size_kb} KB</span>
       </div>
-    `).join("") : `<div style="color:var(--muted);font-size:0.82rem;">لا توجد ملفات بعد في workspace</div>`;
+    `).join("") : `<div style="color:var(--muted);font-size:0.8rem;">المجلد فارغ</div>`;
 
-    // RAG Docs List
-    const rDiv = document.getElementById("ragDocsList");
-    rDiv.innerHTML = data.rag_docs.length ? data.rag_docs.map(d => `
-      <div class="msg" style="padding:10px;">
-        <b>📘 ${d.name}</b> <span style="color:var(--muted);font-size:0.75rem;">(${d.size_kb} KB)</span>
-        <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">${d.preview.replace(/</g,'&lt;')}...</div>
-      </div>
-    `).join("") : `<div style="color:var(--muted);font-size:0.82rem;">لا توجد وثائق مضافة بعد</div>`;
+    document.getElementById("ragDocsList").innerHTML = data.rag_docs.map(d => `
+      <div class="msg" style="padding:9px;"><b>📘 ${d.name}</b> (${d.size_kb} KB)</div>
+    `).join("");
   } catch (e) { console.error(e); }
 }
 
@@ -575,89 +623,9 @@ function selectAgent(id) {
   refreshAll();
 }
 
-function appendChat(role, title, text, actions = [], tps = 0) {
-  const s = document.getElementById("chatStream");
-  const d = document.createElement("div");
-  d.className = "msg " + (role === "user" ? "user" : "");
-  let chips = (actions || []).map(a => {
-    if (a.type === "write_file") return `<span class="action-chip">💾 Saved: ${a.path} (${a.bytes} B)</span>`;
-    if (a.type === "run_cmd") return `<span class="action-chip">⚙️ Cmd: ${a.cmd} (exit ${a.returncode})</span>`;
-    return "";
-  }).join("");
-  const speedBadge = tps > 0 ? `<span class="badge" style="margin-right:8px;">⚡ ${tps} tok/s</span>` : "";
-  const safe = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
-  d.innerHTML = `<div><b>${title}</b> ${speedBadge}</div><div style="margin-top:6px;">${safe}</div><div>${chips}</div>`;
-  s.appendChild(d);
-  s.scrollTop = s.scrollHeight;
-}
-
-async function dispatchSingleTask() {
-  const box = document.getElementById("promptBox");
-  const prompt = box.value.trim();
-  if (!prompt) return;
-  box.value = "";
-  appendChat("user", "🧑‍💻 عزمي (الريس)", prompt);
-  document.getElementById("taskSpinner").style.display = "inline";
-  try {
-    const r = await fetch("/api/task", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({agent_id: selectedAgent, prompt})
-    });
-    const res = await r.json();
-    if (res.ok) {
-      appendChat("agent", `${res.agent} (${res.elapsed_sec}s)`, res.reply, res.actions, res.tokens_per_sec);
-    } else {
-      appendChat("agent", "❌ تنبيه", res.error);
-    }
-  } catch (e) {
-    appendChat("agent", "❌ خطأ اتصال", String(e));
-  }
-  document.getElementById("taskSpinner").style.display = "none";
-  refreshAll();
-}
-
-async function runSwarmMission() {
-  const box = document.getElementById("promptBox");
-  const mission = box.value.trim() || "Build a complete modular Python FastAPI microservice inside `swarm_app/` with health check and unit test.";
-  box.value = "";
-  appendChat("user", "🐝 Swarm Mission (Rayes ➔ Dev-Lead ➔ QA-Sec)", mission);
-  document.getElementById("taskSpinner").style.display = "inline";
-  try {
-    const r = await fetch("/api/swarm", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({mission})
-    });
-    const data = await r.json();
-    if (data.ok) {
-      for (const st of data.swarm_steps) {
-        appendChat("agent", `🐝 ${st.agent} (${st.elapsed_sec || 0}s)`, st.reply || st.error, st.actions, st.tokens_per_sec);
-      }
-    }
-  } catch (e) {
-    appendChat("agent", "❌ خطأ في السرب", String(e));
-  }
-  document.getElementById("taskSpinner").style.display = "none";
-  refreshAll();
-}
-
-async function runAutopilotTrainer() {
-  appendChat("user", "⚡ 1-Click Autopilot", "بناء مشروع HITECH AI Trainer v2.0 الكامل في /data/genio-os/workspace/hitech-ai-trainer");
-  document.getElementById("taskSpinner").style.display = "inline";
-  const r = await fetch("/api/autopilot/hitech-trainer", {method: "POST"});
-  const res = await r.json();
-  document.getElementById("taskSpinner").style.display = "none";
-  appendChat("agent", `Dev-Lead (${res.elapsed_sec || 0}s)`, res.reply || res.error, res.actions, res.tokens_per_sec);
-  refreshAll();
-}
-
-// Live Web IDE functions
 async function loadFileInIde(path) {
   const r = await fetch("/api/file/read", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({path})
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({path})
   });
   const d = await r.json();
   if (d.ok) {
@@ -672,16 +640,14 @@ function createNewFile() {
   if (!p) return;
   activeFilePath = p;
   document.getElementById("currentEditPath").innerText = p;
-  document.getElementById("codeEditor").value = "# New file: " + p + "\n";
+  document.getElementById("codeEditor").value = "# " + p + "\n";
 }
 
 async function saveCurrentFile() {
-  if (!activeFilePath) return alert("اختر ملفاً أو اكتب اسم ملف جديد أولاً");
+  if (!activeFilePath) return;
   const content = document.getElementById("codeEditor").value;
   await fetch("/api/file/save", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({path: activeFilePath, content})
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({path: activeFilePath, content})
   });
   refreshAll();
 }
@@ -691,30 +657,23 @@ async function runCurrentPythonFile() {
   await saveCurrentFile();
   const outBox = document.getElementById("ideRunOutput");
   outBox.style.display = "block";
-  outBox.innerText = "⏳ Running " + activeFilePath + "...";
+  outBox.innerText = "⏳ Running...";
   const r = await fetch("/api/shell", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({cmd: `python3 "${activeFilePath}"`})
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({cmd: `python3 "${activeFilePath}"`})
   });
   const d = await r.json();
-  outBox.innerText = d.output || "(Exit 0 — No stdout)";
+  outBox.innerText = d.output || "(Exit 0)";
 }
 
 async function deleteCurrentFile() {
-  if (!activeFilePath || !confirm("حذف الملف " + activeFilePath + "؟")) return;
+  if (!activeFilePath || !confirm("حذف " + activeFilePath + "؟")) return;
   await fetch("/api/file/delete", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({path: activeFilePath})
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({path: activeFilePath})
   });
   activeFilePath = "";
-  document.getElementById("currentEditPath").innerText = "لم يتم اختيار ملف";
-  document.getElementById("codeEditor").value = "";
   refreshAll();
 }
 
-// Terminal functions
 async function executeShell() {
   const inp = document.getElementById("shellInput");
   const cmd = inp.value.trim();
@@ -725,37 +684,28 @@ async function executeShell() {
 
 async function quickCmd(cmd) {
   const out = document.getElementById("termOutput");
-  out.innerText += `\n\nhitech@tn:/data/genio-os/workspace$ ${cmd}\n⏳ Running...`;
+  out.innerText += `\n\nhitech@tn:/data/genio-os/workspace$ ${cmd}\n⏳...`;
   const r = await fetch("/api/shell", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({cmd})
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({cmd})
   });
   const d = await r.json();
-  out.innerText = out.innerText.replace("⏳ Running...", d.output || "(Done)");
+  out.innerText = out.innerText.replace("⏳...", d.output || "(Done)");
   out.scrollTop = out.scrollHeight;
 }
 
-// RAG functions
 async function saveRagDoc() {
   const filename = document.getElementById("ragFilename").value.trim();
   const content = document.getElementById("ragContent").value.trim();
   if (!filename || !content) return;
   await fetch("/api/rag/add", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({filename, content})
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({filename, content})
   });
-  document.getElementById("ragFilename").value = "";
-  document.getElementById("ragContent").value = "";
   refreshAll();
 }
 
-// Admin functions
 async function saveAdminConfig() {
   await fetch("/api/config", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
+    method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
       ollama_host: document.getElementById("cfgOllamaHost").value,
       primary_model: document.getElementById("cfgModelSelect").value,
@@ -769,35 +719,29 @@ async function saveAdminConfig() {
 async function pullOllamaModel() {
   const name = document.getElementById("pullModelInput").value.trim();
   if (!name) return;
-  document.getElementById("pullStatus").innerText = `⏳ جاري سحب النموذج ${name} على Legion...`;
+  document.getElementById("pullStatus").innerText = "⏳ Pulling " + name + "...";
   const r = await fetch("/api/models/pull", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({model_name: name})
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({model_name: name})
   });
   const d = await r.json();
-  document.getElementById("pullStatus").innerText = d.ok ? `✅ تم تحميل ${name} بنجاح!` : `❌ خطأ: ${d.error}`;
+  document.getElementById("pullStatus").innerText = d.ok ? "✅ Done!" : "❌ " + d.error;
   refreshAll();
 }
 
 async function checkGitHubUpdates() {
-  const box = document.getElementById("updateBox");
-  box.innerText = "🔍 Checking GitHub origin/main...";
   const r = await fetch("/api/update/check");
   const d = await r.json();
-  box.innerText = `Local: ${d.local_hash || 'N/A'} | Remote: ${d.remote_hash || 'N/A'}\nUpdate Available: ${d.update_available} (${d.commits_behind} commits behind)\n\nRecent Commits:\n` + (d.changelog || []).join("\n");
+  document.getElementById("updateBox").innerText = JSON.stringify(d, null, 2);
 }
 
 async function applyGitHubUpdate() {
-  const box = document.getElementById("updateBox");
-  box.innerText = "⚡ Pulling latest updates from GitHub...";
   const r = await fetch("/api/update/apply", {method: "POST"});
   const d = await r.json();
-  box.innerText = d.ok ? `✅ Updated:\n${d.output}` : `❌ Error:\n${d.error}`;
+  document.getElementById("updateBox").innerText = d.output || d.error;
 }
 
 refreshAll();
-setInterval(refreshAll, 9000);
+setInterval(refreshAll, 10000);
 </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 import json
 import subprocess
 from pathlib import Path
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from core.engine import GenioEngine, AGENTS_REGISTRY, HISTORY_PATH, BASE_DIR
 
-app = FastAPI(title="Genio OS v4.0 Ultimate Enterprise Studio")
+app = FastAPI(title="Genio OS v5.0 Singularity — Self-Evolving AI Studio")
 engine = GenioEngine()
 
 
@@ -19,11 +19,18 @@ class TaskRequest(BaseModel):
     agent_id: str = "Genio-Rayes"
     prompt: str
     model: Optional[str] = None
-    use_rag: bool = True
 
 
-class SwarmRequest(BaseModel):
-    mission: str
+class PlaybookAddRequest(BaseModel):
+    title: str
+    pattern: str
+    agent: str = "Azmi (Manual Rule)"
+
+
+class ErrorResolutionAddRequest(BaseModel):
+    error_signature: str
+    target: str
+    resolution: str
 
 
 class ConfigUpdateRequest(BaseModel):
@@ -74,35 +81,40 @@ async def get_status():
     }
 
 
+@app.post("/api/task/stream")
+async def stream_task(req: TaskRequest):
+    return StreamingResponse(
+        engine.stream_task_events(req.agent_id, req.prompt, req.model),
+        media_type="text/event-stream"
+    )
+
+
 @app.post("/api/task")
 async def run_task(req: TaskRequest):
-    return await engine.dispatch_task(req.agent_id, req.prompt, req.model, req.use_rag)
+    return await engine.dispatch_task(req.agent_id, req.prompt, req.model)
 
 
-@app.post("/api/swarm")
-async def run_swarm(req: SwarmRequest):
-    return await engine.dispatch_swarm(req.mission)
+@app.get("/api/memory")
+async def get_memory():
+    return {
+        "stats": engine.get_memory_stats(),
+        "playbooks": engine.load_playbooks(),
+        "error_resolutions": engine.load_error_resolutions(),
+        "ledger": engine.get_recent_ledger(50)
+    }
 
 
-@app.post("/api/autopilot/hitech-trainer")
-async def build_hitech_trainer():
-    project_dir = engine.workspace / "hitech-ai-trainer"
-    project_dir.mkdir(parents=True, exist_ok=True)
-    req_txt = (
-        "torch>=2.2.0\ntorchvision>=0.17.0\naccelerate>=0.33.0\n"
-        "transformers>=4.45.0\npeft>=0.12.0\ntrl>=0.10.0\ndatasets>=2.20.0\n"
-        "bitsandbytes>=0.43.0\nllama-cpp-python>=0.2.90\ngradio>=4.40.0\n"
-        "pillow>=10.2.0\npsutil>=5.9.0\nplaywright>=1.44.0\n"
-    )
-    (project_dir / "requirements.txt").write_text(req_txt, encoding="utf-8")
-    prompt = (
-        "Build the complete production files for `hitech-ai-trainer`: "
-        "1) `hitech-ai-trainer/ROADMAP.md` with Mermaid architecture diagram, "
-        "2) `hitech-ai-trainer/train_engine.py` supporting 4-bit NF4 QLoRA, Ubatch (128-4096), Turbo KV Cache, Multi-Token Prediction (MTP), and Jev Mode JSON decoding, "
-        "3) `hitech-ai-trainer/app.py` with a 4-Tab Gradio UI. "
-        "Write all files directly using <write_file path=\"...\"> tags and verify syntax using <run_cmd>."
-    )
-    return await engine.dispatch_task("Dev-Lead", prompt)
+@app.post("/api/memory/playbook")
+async def add_playbook(req: PlaybookAddRequest):
+    pb = engine.add_playbook(req.title, req.pattern, req.agent)
+    return {"ok": True, "playbook": pb}
+
+
+@app.post("/api/memory/resolution")
+async def add_resolution(req: ErrorResolutionAddRequest):
+    engine.record_error_resolution(req.error_signature, req.target, req.resolution, fixed_by="Azmi (Human Expert)")
+    engine.add_playbook(f"Fix: {req.target}", f"When encountering `{req.error_signature}`, apply: {req.resolution}", agent="Azmi (Human Expert)")
+    return {"ok": True}
 
 
 @app.post("/api/file/read")
@@ -121,6 +133,14 @@ async def save_file(req: FileWriteRequest):
         return JSONResponse({"ok": False, "error": "Invalid path"}, status_code=400)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(req.content, encoding="utf-8")
+    # Record human edit in experience ledger so agents learn from user edits
+    engine.log_experience_jsonl({
+        "agent": "Azmi (Human Edit)",
+        "action": "manual_file_save",
+        "path": rel,
+        "bytes": len(req.content),
+        "status": "success"
+    })
     return {"ok": True, "path": rel, "bytes": len(req.content)}
 
 
@@ -131,12 +151,18 @@ async def delete_file(req: FileDeleteRequest):
     if str(target).startswith(str(engine.workspace.resolve())) and target.is_file():
         target.unlink()
         return {"ok": True}
-    return JSONResponse({"ok": False, "error": "Cannot delete file"}, status_code=400)
+    return JSONResponse({"ok": False, "error": "Cannot delete"}, status_code=400)
 
 
 @app.post("/api/shell")
 async def run_shell(req: ShellCmdRequest):
     res = engine.run_workspace_command(req.cmd, timeout=90)
+    engine.log_experience_jsonl({
+        "agent": "Web-Terminal",
+        "cmd": req.cmd,
+        "returncode": res["returncode"],
+        "status": res["status"]
+    })
     return {"ok": True, **res}
 
 
@@ -184,14 +210,6 @@ async def apply_update():
         return {"ok": True, "output": out}
     except Exception as e:
         return {"ok": False, "error": str(e)}
-
-
-@app.get("/api/history")
-async def get_history():
-    try:
-        return json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
-    except Exception:
-        return []
 
 
 @app.get("/", response_class=HTMLResponse)
