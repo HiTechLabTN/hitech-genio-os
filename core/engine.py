@@ -17,6 +17,17 @@ ERROR_RESOLUTIONS = BASE_DIR / "memory" / "error_resolutions.json"
 PLAYBOOKS_PATH = BASE_DIR / "memory" / "playbooks.json"
 
 AGENTS_REGISTRY = {
+    "HR-Director": {
+        "title": "HR-Director (Chief Talent Officer & Agent Synthesizer)",
+        "icon": "👔",
+        "badge": "HR / Talent",
+        "role": (
+            "You are HR-Director, the Chief Talent Officer of HiTech Enterprise. "
+            "Your responsibility is to evaluate tasks, identify missing skills or specialized roles, "
+            "and dynamically spawn or configure new agent personas when specialized expertise is required. "
+            "Always ensure smooth collaboration across the autonomous team."
+        )
+    },
     "Genio-Rayes": {
         "title": "El Rayes (PDG & Master Orchestrator)",
         "icon": "👑",
