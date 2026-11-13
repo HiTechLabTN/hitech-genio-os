@@ -216,3 +216,47 @@ async def apply_update():
 async def index():
     html_path = Path(__file__).resolve().parent / "static" / "index.html"
     return html_path.read_text(encoding="utf-8")
+
+
+import io
+import zipfile
+import mimetypes
+from fastapi.responses import StreamingResponse, FileResponse
+
+@app.get("/api/file/raw")
+async def get_raw_file(path: str, download: bool = False):
+    target = (engine.workspace / path).resolve()
+    if not str(target).startswith(str(engine.workspace.resolve())) or not target.is_file():
+        return JSONResponse({"ok": False, "error": "File not found"}, status_code=404)
+    mime, _ = mimetypes.guess_type(str(target))
+    headers = {}
+    if download:
+        headers["Content-Disposition"] = f'attachment; filename="{target.name}"'
+    return FileResponse(str(target), media_type=mime or "application/octet-stream", headers=headers)
+
+@app.get("/api/workspace/zip")
+async def export_workspace_zip(folder: str = ""):
+    target_dir = (engine.workspace / folder).resolve()
+    if not str(target_dir).startswith(str(engine.workspace.resolve())) or not target_dir.exists():
+        target_dir = engine.workspace.resolve()
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        if target_dir.is_file():
+            zf.write(target_dir, target_dir.name)
+        else:
+            for p in target_dir.rglob("*"):
+                if p.is_file():
+                    zf.write(p, p.relative_to(target_dir))
+    buf.seek(0)
+    zip_name = f"{target_dir.name or 'workspace'}_project.zip"
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{zip_name}"'}
+    )
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=int(engine.config.get("port", 8099)))

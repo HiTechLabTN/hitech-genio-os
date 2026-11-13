@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import json
 import time
 import hashlib
@@ -110,10 +111,36 @@ class GenioEngine:
     def reload_config(self):
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             self.config = json.load(f)
-        self.workspace = Path(self.config["workspace_dir"])
-        self.rag_dir = Path(self.config.get("rag_dir", str(BASE_DIR / "rag_docs")))
-        self.workspace.mkdir(parents=True, exist_ok=True)
-        self.rag_dir.mkdir(parents=True, exist_ok=True)
+        self.workspace = self._resolve_dir(
+            self.config.get("workspace_dir"), BASE_DIR / "workspace", "workspace_dir"
+        )
+        self.rag_dir = self._resolve_dir(
+            self.config.get("rag_dir"), BASE_DIR / "rag_docs", "rag_dir"
+        )
+
+    @staticmethod
+    def _resolve_dir(configured: Optional[str], fallback: Path, key: str) -> Path:
+        """Return a writable directory.
+
+        Keeps the production layout (e.g. ``/data/genio-os/workspace``) when it is
+        usable, and silently falls back to the repo-local folder on dev machines,
+        CI or read-only filesystems, so the platform can boot anywhere.
+        """
+        configured_path = Path(configured).expanduser() if configured else None
+        candidates = [p for p in (configured_path, fallback) if p is not None]
+        for candidate in candidates:
+            try:
+                candidate.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                continue
+            if configured_path is not None and candidate != configured_path:
+                print(
+                    f"[genio] {key}={str(configured_path)!r} is not usable, "
+                    f"falling back to {str(candidate)!r}",
+                    file=sys.stderr,
+                )
+            return candidate
+        raise OSError(f"{key}: no writable directory (tried {[str(p) for p in candidates]})")
 
     def save_config(self, updates: Dict[str, Any]):
         self.config.update(updates)
