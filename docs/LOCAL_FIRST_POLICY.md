@@ -54,3 +54,13 @@ ssh -t pop-os 'bash -s' < /home/hitech/Data_TN/genio-os/scripts/fix_ollama_conte
 - DSH **ما عندوش fallback أوتوماتيكي** بين مزوّدين: كل طلب model-request كيتم على route واحد، و`dsh-llm-retry` يعاود على نفس المزوّد فقط.
 - الحل الحالي = **طبقة سياسة + subagents**: المحلي يخدم، والسحابة تتحقّق وتصيفط.
 - الحل الجذري = **Model Router** في Genio (Sprint 4): يحاول محلي → يقيّم آليًا (schema/tests/confidence) → يرقّي للسحابة. وإلا plugin DSH مخصّص (أكثر تعقيدًا وخطر على الاستقرار).
+
+---
+
+## 5. نتائج التحقّق (13 نوفمبر 2026 — pop-os)
+
+- Ollama 0.32.1 يخدم في **Docker** (ماشي systemd) → الـ env ما يتطبّقش إلا بإعادة إنشاء الحاوية.
+- الحل المعتمد: نسخ `-32k` بـ `num_ctx` مضمّن — إنشاؤها نجح.
+- **`gemma4:12b-32k`:** `context_length=32768`، كل الموديل في VRAM (size_vram = size) → 100% GPU ✅
+- **`qwen2.5-coder:14b-32k`:** `context_length=32768`، size=15.75GB، vram=10.45GB → ~5.3GB على CPU (أبطأ، لكن يخدم).
+- **التوصية:** `gemma4:12b-32k` للمهام اليومية (تحليل/محادثة/مراجعة)، و`qwen2.5-coder:14b` (بـ 16K) للكود لما تحتاج جودة أعلى، أو تقبّل البطء مع 32K.

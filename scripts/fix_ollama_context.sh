@@ -51,10 +51,20 @@ EOF
 else
   warn "Ollama ماشي تحت systemd (ولا ماشي نشط)."
   if command -v docker >/dev/null 2>&1 && docker ps --format '{{.Names}}' 2>/dev/null | grep -qi ollama; then
-    warn "Ollama يخدم في Docker — أعد تشغيل الحاوية بهالأمر:"
-    echo "  docker rm -f ollama && docker run -d --gpus all -v ollama:/root/.ollama -p 11434:11434 \\"
+    NAME="$(docker ps --format '{{.Names}}' 2>/dev/null | grep -i ollama | head -n1)"
+    IMAGE="$(docker inspect "$NAME" --format '{{.Config.Image}}' 2>/dev/null)"
+    MOUNTS="$(docker inspect "$NAME" --format '{{range .Mounts}} -v {{.Source}}:{{.Destination}}{{end}}' 2>/dev/null)"
+    GPUS="$(docker inspect "$NAME" --format '{{if .HostConfig.DeviceRequests}}--gpus all{{end}}' 2>/dev/null)"
+    PORTS="$(docker inspect "$NAME" --format '{{range $p, $v := .HostConfig.PortBindings}} -p {{(index $v 0).HostPort}}:{{$p}}{{end}}' 2>/dev/null)"
+    warn "Ollama يخدم في Docker (الحاوية: $NAME) — الـ env ما يتطبّقش بلا إعادة إنشاء."
+    echo "  راجع الأمر هذا قبل ما تنفّذو (يحافظ على نفس الـ volumes$MOUNTS):"
+    echo
+    echo "  docker stop $NAME && docker rm $NAME"
+    echo "  docker run -d --restart unless-stopped $GPUS $PORTS $MOUNTS \\"
     echo "    -e OLLAMA_CONTEXT_LENGTH=$CTX -e OLLAMA_NUM_PARALLEL=1 -e OLLAMA_MAX_LOADED_MODELS=1 \\"
-    echo "    --restart unless-stopped --name ollama ollama/ollama"
+    echo "    -e OLLAMA_KEEP_ALIVE=30m --name $NAME $IMAGE"
+    echo
+    warn "بديل أسهل وبلا مخاطر: استعمل الموديلات -32k (يصنعهم السكريبت تحت) — ما تحتاجش تعاود تشغّل الحاوية."
   else
     warn "شغّلو يدويًا بـ:"
     echo "  OLLAMA_CONTEXT_LENGTH=$CTX OLLAMA_NUM_PARALLEL=1 OLLAMA_MAX_LOADED_MODELS=1 ollama serve"
