@@ -163,7 +163,22 @@ CREATE TABLE IF NOT EXISTS approvals (
 );
 """
 
-MIGRATIONS: List[str] = [MIGRATION_1, MIGRATION_2]
+MIGRATION_3 = """
+CREATE TABLE IF NOT EXISTS projects (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name       TEXT NOT NULL,
+    template   TEXT NOT NULL,
+    slug       TEXT NOT NULL,
+    idea       TEXT NOT NULL DEFAULT '',
+    tasks      TEXT NOT NULL DEFAULT '[]',
+    created_at REAL NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS projects_user_slug ON projects (user_id, slug);
+"""
+
+MIGRATIONS: List[str] = [MIGRATION_1, MIGRATION_2, MIGRATION_3]
 
 
 def data_dir() -> Path:
