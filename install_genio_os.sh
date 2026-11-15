@@ -71,7 +71,8 @@ step_header "[1/5] تجهيز البنية التحتية ومسارات الذ�
 
 sudo mkdir -p /data
 sudo chown -R "$USER":"$USER" /data
-mkdir -p "${INSTALL_DIR}"/{core,web/static,workspace,rag_docs,logs,memory/playbooks,memory/tools_ evolved}
+mkdir -p "${INSTALL_DIR}"/{core,web/static,workspace,rag_docs,logs,memory/playbooks,memory/tools_}
+mkdir -p "${INSTALL_DIR}/evolved"
 
 EXISTING_PORT=""
 DETECTED_OLLAMA="http://pop-os:11434"
@@ -102,7 +103,13 @@ cat << EOF > "${INSTALL_DIR}/config.json"
   "port": ${FINAL_PORT},
   "temperature": 0.2,
   "num_ctx": 8192,
-  "auto_self_heal_retries": 2
+  "auto_self_heal_retries": 2,
+  "security": {
+    "host": "127.0.0.1",
+    "api_token": "",
+    "enable_shell": false,
+    "enable_update": false
+  }
 }
 EOF
 ok_msg "تم ضبط الإعدادات والمنفذ ${FINAL_PORT} وربط عقدة ${DETECTED_OLLAMA}"
@@ -112,6 +119,9 @@ ok_msg "تم ضبط الإعدادات والمنفذ ${FINAL_PORT} وربط ع�
 # ==============================================================================
 step_header "[2/5] بناء المحرك التطوري والبث المباشر للكواليس (Live Stream + JSONL Memory)"
 
+if [ -f "${INSTALL_DIR}/core/engine.py" ]; then
+    warn_msg "core/engine.py موجود — نستعملو نسخة الريبو (المصدر الوحيد للحقيقة)"
+else
 cat << 'EOF' > "${INSTALL_DIR}/core/engine.py"
 import os
 import re
@@ -686,8 +696,13 @@ EOF
 # ==============================================================================
 # STAGE 3: FASTAPI SERVER WITH LIVE SSE STREAMING & MEMORY API (web/server.py)
 # ==============================================================================
+fi
+
 step_header "[3/5] بناء سيرفر البث الفوري والذاكرة التطورية (FastAPI SSE + Memory APIs)"
 
+if [ -f "${INSTALL_DIR}/web/server.py" ]; then
+    warn_msg "web/server.py موجود — نستعملو نسخة الريبو (المصدر الوحيد للحقيقة)"
+else
 cat << 'EOF' > "${INSTALL_DIR}/web/server.py"
 import json
 import subprocess
@@ -912,8 +927,13 @@ EOF
 # ==============================================================================
 # STAGE 4: 6-IN-1 3D STUDIO UI WITH LIVE STREAM MONITOR & MEMORY LAB
 # ==============================================================================
+fi
+
 step_header "[4/5] بناء الواجهة التفاعلية v5.0 (غرفة الكواليس الحية + مختبر الذاكرة والـ JSON Logs)"
 
+if [ -f "${INSTALL_DIR}/web/static/index.html" ]; then
+    warn_msg "web/static/index.html موجود — نستعملو نسخة الريبو (المصدر الوحيد للحقيقة)"
+else
 cat << 'EOF' > "${INSTALL_DIR}/web/static/index.html"
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1667,6 +1687,8 @@ EOF
 # ==============================================================================
 # STAGE 5: VERIFY SYNTAX, RESTART SERVICE & PUSH TO GITHUB
 # ==============================================================================
+fi
+
 step_header "[5/5] فحص الكود، تشغيل الخدمة، ومزامنة الإصدار v5.0 مع GitHub"
 
 "${INSTALL_DIR}/venv/bin/python" -m py_compile "${INSTALL_DIR}/core/engine.py" "${INSTALL_DIR}/web/server.py"
@@ -1675,10 +1697,9 @@ cp "$0" "${INSTALL_DIR}/install_genio_os.sh" 2>/dev/null || true
 sudo systemctl daemon-reload
 sudo systemctl restart genio-os.service
 
-cd "${INSTALL_DIR}"
-git add .
-git commit -m "feat(v5.0): real-time SSE behind-the-scenes streaming, self-healing loop, and JSONL experience/playbook memory" >/dev/null 2>&1 || true
-git push origin main >/dev/null 2>&1 || true
+# المصدر الوحيد للحقيقة = الريبو. ما نعملوش git add/commit/push تلقائي:
+# كان نخدمو هكّا، الـ runtime state (memory/logs/workspace) تتصبّط في الريبو.
+warn_msg "ما نعملوش git push تلقائي — الـ runtime state تبقى برا الريبو (المرحلة 0)"
 
 ok_msg "تم إطلاق Genio OS v5.0 Singularity بنجاح على http://tn:${FINAL_PORT} !"
 

@@ -11,5 +11,11 @@
   "port": 8099,
   "temperature": 0.2,
   "num_ctx": 8192,
-  "auto_self_heal_retries": 2
+  "auto_self_heal_retries": 2,
+  "security": {
+    "host": "127.0.0.1",
+    "api_token": "",
+    "enable_shell": false,
+    "enable_update": false
+  }
 }

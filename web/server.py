@@ -1,7 +1,7 @@
 import json
 import subprocess
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
@@ -9,10 +9,37 @@ import httpx
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from core import security
 from core.engine import GenioEngine, AGENTS_REGISTRY, HISTORY_PATH, BASE_DIR
 
 app = FastAPI(title="Genio OS v5.0 Singularity — Self-Evolving AI Studio")
 engine = GenioEngine()
+
+
+def _feature_gate(enabled: bool, feature: str, setting: str, env_var: str):
+    """403 response when a dangerous capability was not explicitly enabled."""
+    if enabled:
+        return None
+    return JSONResponse(
+        {
+            "ok": False,
+            "error": f"{feature} is disabled. Set {setting} in config.json or {env_var}=1 to enable it.",
+        },
+        status_code=403,
+    )
+
+
+@app.middleware("http")
+async def api_security_guard(request: Request, call_next):
+    """المرحلة 0: /api/* للمحلي فقط، إلا إذا token معرّف في الإعدادات."""
+    if request.url.path.startswith("/api"):
+        try:
+            security.check_api_access(request, engine)
+        except HTTPException as exc:
+            return JSONResponse(
+                {"ok": False, "error": exc.detail}, status_code=exc.status_code
+            )
+    return await call_next(request)
 
 
 class TaskRequest(BaseModel):
@@ -156,6 +183,11 @@ async def delete_file(req: FileDeleteRequest):
 
 @app.post("/api/shell")
 async def run_shell(req: ShellCmdRequest):
+    gate = _feature_gate(
+        security.shell_enabled(engine), "shell", "security.enable_shell", "GENIO_ENABLE_SHELL"
+    )
+    if gate:
+        return gate
     res = engine.run_workspace_command(req.cmd, timeout=90)
     engine.log_experience_jsonl({
         "agent": "Web-Terminal",
@@ -205,6 +237,11 @@ async def check_update():
 
 @app.post("/api/update/apply")
 async def apply_update():
+    gate = _feature_gate(
+        security.update_enabled(engine), "update/apply", "security.enable_update", "GENIO_ENABLE_UPDATE"
+    )
+    if gate:
+        return gate
     try:
         out = subprocess.check_output(["git", "pull", "origin", "main"], cwd=str(BASE_DIR), text=True, stderr=subprocess.STDOUT)
         return {"ok": True, "output": out}
@@ -259,4 +296,4 @@ async def export_workspace_zip(folder: str = ""):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=int(engine.config.get("port", 8099)))
+    uvicorn.run(app, host=security.bind_host(engine), port=int(engine.config.get("port", 8099)))

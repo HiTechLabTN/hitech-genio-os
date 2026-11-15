@@ -4,6 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#020617">
+<script>
+/* المرحلة 0 — دعم التوكن: /api يتطلّب X-Genio-Token إذا security.api_token معرّف */
+(function () {
+  var TOKEN_KEY = "genio_token";
+  var url = new URL(window.location.href);
+  if (url.searchParams.get("token")) {
+    try { localStorage.setItem(TOKEN_KEY, url.searchParams.get("token")); } catch (e) {}
+    url.searchParams.delete("token");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }
+  var nativeFetch = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var target = typeof input === "string" ? input : (input && input.url) || "";
+    var token = null;
+    try { token = localStorage.getItem(TOKEN_KEY); } catch (e) {}
+    if (token && target.indexOf("/api") === 0) {
+      init = Object.assign({}, init || {});
+      init.headers = Object.assign({}, init.headers || {}, { "X-Genio-Token": token });
+    }
+    return nativeFetch(input, init);
+  };
+})();
+</script>
 <title>Genio OS v8.0 — Voxel Cyberpunk AI Company HQ</title>
 <style>
   :root {
