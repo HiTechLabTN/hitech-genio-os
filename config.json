@@ -3,7 +3,7 @@
   "enterprise_name": "Genio OS v5.0 — Self-Evolving Studio",
   "node_name": "tn",
   "ollama_host": "http://pop-os:11434",
-  "primary_model": "qwen2.5-coder:14b",
+  "primary_model": "ornith-1.5:9b",
   "vision_model": "minicpm-v:latest",
   "workspace_dir": "/data/genio-os/workspace",
   "rag_dir": "/data/genio-os/rag_docs",

@@ -1,0 +1,1179 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Genio OS v8.0 — Full-Screen Voxel Cyberpunk AI Company HQ Installer
+Generates the complete Three.js interactive cross-hallway office map,
+living Voxel avatars with emotions/speech bubbles, meeting room, skill library,
+and multimodal workspace studio.
+"""
+
+from pathlib import Path
+
+ROOT = Path("/data/genio-os")
+INDEX_HTML = ROOT / "web" / "static" / "index.html"
+
+HTML_CODE = r"""<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#020617">
+<title>Genio OS v8.0 — Voxel Cyberpunk AI Company HQ</title>
+<style>
+  :root {
+    --bg-deep: #020617;
+    --bg-glass: rgba(10, 16, 32, 0.88);
+    --bg-card: rgba(20, 30, 55, 0.78);
+    --cyan: #00f2fe;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --border: rgba(0, 242, 254, 0.32);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+  header {
+    background: rgba(2, 6, 23, 0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    z-index: 200;
+  }
+  .brand { font-weight: 900; font-size: 1.05rem; background: linear-gradient(90deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 8px; }
+  .live-indicator { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--red); color: #fca5a5; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+  .live-dot { width: 7px; height: 7px; background: var(--red); border-radius: 50%; box-shadow: 0 0 8px var(--red); animation: blink 1s infinite alternate; }
+  @keyframes blink { from { opacity: 0.3; } to { opacity: 1; } }
+
+  .telemetry { display: flex; gap: 6px; font-size: 0.72rem; align-items: center; flex-wrap: wrap; }
+  .pill { background: var(--bg-card); border: 1px solid var(--border); padding: 3px 9px; border-radius: 999px; }
+
+  .nav-tabs {
+    display: flex; gap: 6px; padding: 6px 12px; background: rgba(4, 9, 24, 0.94); border-bottom: 1px solid rgba(255,255,255,0.08); overflow-x: auto; z-index: 190;
+  }
+  .tab-btn {
+    background: var(--bg-card); color: var(--muted); border: 1px solid transparent; padding: 6px 12px; border-radius: 9px; font-weight: 700; font-size: 0.78rem; cursor: pointer; white-space: nowrap; transition: 0.2s;
+  }
+  .tab-btn:hover, .tab-btn.active { color: #020617; background: linear-gradient(135deg, var(--cyan), var(--blue)); box-shadow: 0 3px 12px rgba(0,242,254,0.35); }
+
+  .studio-section { display: none; padding: 10px; flex: 1; }
+  .studio-section.active { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Full-Screen 3D Map Container */
+  .hq-map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 62vh;
+    min-height: 430px;
+    background: #02040a;
+    border: 1px solid var(--cyan);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.7), inset 0 0 40px rgba(0,242,254,0.15);
+  }
+  #threeCanvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+  #threeCanvas:active { cursor: grabbing; }
+
+  /* Top Camera & Ritual Controls Overlay */
+  .hq-top-hud {
+    position: absolute; top: 10px; left: 10px; right: 10px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; gap: 8px; flex-wrap: wrap;
+  }
+  .hud-group { display: flex; gap: 5px; flex-wrap: wrap; pointer-events: auto; }
+  .hud-btn {
+    background: rgba(6, 12, 28, 0.88); color: var(--text); border: 1px solid var(--border);
+    padding: 5px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700;
+    cursor: pointer; backdrop-filter: blur(8px); transition: 0.2s;
+  }
+  .hud-btn:hover, .hud-btn.active { background: var(--cyan); color: #020617; border-color: var(--cyan); }
+  .hud-btn.ritual { border-color: var(--purple); color: #e9d5ff; }
+  .hud-btn.ritual:hover { background: var(--purple); color: #fff; }
+
+  /* Bottom Status Bar inside 3D Viewport */
+  .hq-bottom-hud {
+    position: absolute; bottom: 10px; left: 10px; right: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(4, 8, 20, 0.9); border: 1px solid var(--border);
+    padding: 7px 12px; border-radius: 10px; font-size: 0.75rem;
+    backdrop-filter: blur(10px); flex-wrap: wrap; gap: 8px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 320px 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } .hq-map-wrapper { height: 52vh; min-height: 360px; } }
+
+  .panel {
+    background: var(--bg-glass); backdrop-filter: blur(16px); border: 1px solid var(--border);
+    border-radius: 12px; padding: 11px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .panel-title { font-size: 0.84rem; font-weight: 800; color: var(--cyan); border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+
+  .agent-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px;
+    padding: 6px 9px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; transition: 0.2s;
+  }
+  .agent-card:hover, .agent-card.active { border-color: var(--cyan); background: rgba(0,242,254,0.14); }
+  .badge { font-size: 0.63rem; padding: 2px 6px; border-radius: 99px; background: rgba(168,85,247,0.25); color: #e9d5ff; border: 1px solid rgba(168,85,247,0.4); }
+
+  .live-kawaliss {
+    background: #010409; border: 1px solid rgba(0,242,254,0.28); border-radius: 8px; padding: 7px 9px;
+    font-family: monospace; font-size: 0.72rem; max-height: 110px; overflow-y: auto; color: #38bdf8; direction: ltr; text-align: left;
+  }
+  .chat-stream { min-height: 160px; max-height: 28vh; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; padding: 4px; }
+  .msg { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-right: 4px solid var(--cyan); border-radius: 8px; padding: 8px; font-size: 0.8rem; line-height: 1.5; }
+  .msg.user { border-right-color: var(--amber); background: rgba(245,158,11,0.08); }
+
+  textarea, input, select { width: 100%; background: rgba(2,6,23,0.92); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 7px; font-family: inherit; font-size: 0.8rem; outline: none; }
+  .btn { background: linear-gradient(135deg, var(--cyan), var(--blue)); color: #020617; font-weight: 800; border: none; border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 0.78rem; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; text-decoration: none; }
+  .btn.purple { background: linear-gradient(135deg, var(--purple), #ec4899); color: #fff; }
+  .btn.green { background: linear-gradient(135deg, var(--green), #059669); color: #020617; }
+  .btn.secondary { background: rgba(255,255,255,0.07); color: var(--text); border: 1px solid var(--border); }
+
+  .terminal-out { background: #000; color: #10b981; font-family: monospace; font-size: 0.75rem; padding: 10px; border-radius: 8px; min-height: 250px; max-height: 46vh; overflow-y: auto; direction: ltr; text-align: left; white-space: pre-wrap; border: 1px solid rgba(16,185,129,0.3); }
+  .file-item { font-family: monospace; font-size: 0.74rem; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; direction: ltr; }
+  .file-item:hover, .file-item.active { background: rgba(0,242,254,0.15); border: 1px solid var(--cyan); }
+  .preview-box { background: #060b16; border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-height: 220px; max-height: 420px; overflow: auto; direction: ltr; text-align: left; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span>🏛️ GENIO OS v8.0 — CYBER VOXEL HQ</span>
+    <span class="live-indicator"><span class="live-dot"></span> LIVE OFFICE</span>
+  </div>
+  <div class="telemetry">
+    <div class="pill">🧠 RAM: <span id="ramLabel">--</span></div>
+    <div class="pill">💾 /data: <span id="diskLabel">--</span></div>
+    <div class="pill">🤖 Model: <span id="modelLabel">--</span></div>
+    <div class="pill">📘 XP Rules: <span id="pbLabel">0</span></div>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="tab-btn active" onclick="openTab('tab-office', this)">🏢 خريطة الشركة الحية 3D (Voxel HQ Map)</button>
+  <button class="tab-btn" onclick="openTab('tab-ide', this)">📂 استوديو المشاريع والمعاينة و ZIP</button>
+  <button class="tab-btn" onclick="openTab('tab-ops', this)">📡 سجل الخبرات والـ Logs (JSONL)</button>
+  <button class="tab-btn" onclick="openTab('tab-term', this)">🖥️ طرفية السيرفر</button>
+  <button class="tab-btn" onclick="openTab('tab-rag', this)">📚 دستور الشركة (Handbook)</button>
+  <button class="tab-btn" onclick="openTab('tab-admin', this)">⚙️ الإدارة والنماذج (Admin)</button>
+</nav>
+
+<!-- TAB 1: FULL-SCREEN VOXEL CYBER HQ -->
+<section id="tab-office" class="studio-section active">
+  <div class="hq-map-wrapper" id="viewportBox">
+    <canvas id="threeCanvas"></canvas>
+
+    <div class="hq-top-hud">
+      <div class="hud-group">
+        <button class="hud-btn active" onclick="setCameraPreset('top')">🗺️ خريطة الطابق كاملة (Top-Down)</button>
+        <button class="hud-btn" onclick="setCameraPreset('iso')">🎮 منظور ماينكرافت 3D (Isometric)</button>
+        <button class="hud-btn" onclick="focusRoom('Genio-Rayes')">👑 جناح المدير التنفيذي</button>
+        <button class="hud-btn" onclick="focusRoom('Dev-Lead')">💻 استوديو التطوير</button>
+        <button class="hud-btn" onclick="focusRoom('QA-Sec')">🛡️ مختبر الأمان</button>
+      </div>
+      <div class="hud-group">
+        <button class="hud-btn ritual" onclick="triggerPhoneDispatch()">📞 المدير يرفع السماعة ويوزع المهام</button>
+        <button class="hud-btn ritual" onclick="triggerBoardroomMeeting()">🤝 اجتماع الفريق في القاعة</button>
+        <button class="hud-btn ritual" onclick="triggerLibraryStudy()">📚 ساعة دراسة GitHub</button>
+        <button class="hud-btn ritual" onclick="triggerDeliverReport('Dev-Lead')">🚶‍♂️ تسليم تقرير للـ CEO</button>
+      </div>
+    </div>
+
+    <div class="hq-bottom-hud">
+      <span id="hqStatusText">👑 <b>Genio-Rayes (CEO):</b> في جناح القيادة، يراقب جميع الأقسام عبر الممر الذهبي...</span>
+      <span style="color:var(--cyan);font-family:monospace;">اسحب لتدوير الكاميرا • عجلة الماوس للزوم</span>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">
+        <span>👥 طاقم الشركة ومشاعرهم الحية</span>
+        <span class="badge">8 غرف متصلة</span>
+      </div>
+      <div id="agentsContainer" style="display:flex;flex-direction:column;gap:5px;"></div>
+      <div class="panel-title" style="margin-top:4px;">📡 رادار الكواليس الحي</div>
+      <div id="kawalissBox" class="live-kawaliss">[HQ v8.0] الخريطة المعمارية جاهزة والوكلاء في مكاتبهم...</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span>💬 غرفة قيادة المدير التنفيذي (<span id="curAgentName">Genio-Rayes</span>)</span>
+        <button class="btn purple" style="padding:4px 10px;font-size:0.72rem;" onclick="runSwarmLive()">🐝 إطلاق مهمة السرب الكاملة</button>
+      </div>
+      <div id="chatStream" class="chat-stream">
+        <div class="msg">
+          👑 <b>مرحباً يا ريس عزمي في الإصدار المعماري الثامن Genio OS v8.0!</b><br>
+          • <b>خريطة المكاتب المتقاطعة:</b> جناح المدير التنفيذي في الأعلى، الممر الذهبي في الوسط، 5 مكاتب للأقسام، بالإضافة إلى <b>قاعة الاجتماعات (Boardroom)</b> و<b>مكتبة GitHub للتطور الذاتي</b>.<br>
+          • جرب أزرار المحاكاة فوق الخريطة (رفع السماعة، اجتماع الفريق، تسليم التقارير) أو أرسل مهمة حقيقية بالأسفل!
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:stretch;">
+        <textarea id="promptBox" rows="2" placeholder="أعطِ أمرك للمدير التنفيذي (مثال: ابنِ لي تطبيق ويب داخل مجلد خاص)..." style="flex:1;"></textarea>
+        <button class="btn" onclick="streamSingleAgentTask()">🚀 إرسال</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 2: MULTIMODAL WORKSPACE & ZIP STUDIO -->
+<section id="tab-ide" class="studio-section">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">
+        <span>📂 مشاريع وملفات Workspace</span>
+        <button class="btn secondary" style="padding:3px 8px;font-size:0.7rem;" onclick="refreshAll()">🔄 تحديث</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <input id="zipFolderInput" type="text" dir="ltr" placeholder="اسم المجلد (أو فارغ للكل)">
+        <button class="btn green" onclick="exportZipFolder()">📦 تصدير ZIP</button>
+      </div>
+      <div id="ideFilesList" style="display:flex;flex-direction:column;gap:5px;max-height:430px;overflow-y:auto;"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span id="currentEditPath" style="font-family:monospace;">اختر ملفاً للمعاينة أو التعديل</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn secondary" onclick="togglePreviewMode()">👁️ معاينة حية / كود</button>
+          <a id="downloadFileBtn" class="btn green" href="#" target="_blank" style="display:none;">⬇️ تحميل الملف</a>
+          <button class="btn" onclick="saveCurrentFile()">💾 حفظ</button>
+        </div>
+      </div>
+      <div id="multimodalPreview" class="preview-box" style="display:none;"></div>
+      <textarea id="codeEditor" style="font-family:monospace;height:360px;direction:ltr;text-align:left;background:#02040a;color:#38bdf8;"></textarea>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 3: LOGS -->
+<section id="tab-ops" class="studio-section">
+  <div class="panel">
+    <div class="panel-title">
+      <span>🧠 سجل الخبرات التطوري (experience_ledger.jsonl)</span>
+      <button class="btn secondary" onclick="loadMemoryLedger()">🔄 تحديث السجل</button>
+    </div>
+    <pre id="ledgerViewer" dir="ltr" style="background:#010409;color:#38bdf8;padding:10px;border-radius:8px;font-size:0.74rem;max-height:480px;overflow:auto;"></pre>
+  </div>
+</section>
+
+<!-- TAB 4: TERMINAL -->
+<section id="tab-term" class="studio-section">
+  <div class="panel">
+    <div class="panel-title"><span>🖥️ طرفية السيرفر المباشرة (tn)</span></div>
+    <div id="termOutput" class="terminal-out">hitech@tn:/data/genio-os$ # جاهز...</div>
+    <div style="display:flex;gap:8px;">
+      <input id="shellInput" type="text" dir="ltr" placeholder="أمر لينكس..." onkeydown="if(event.key==='Enter') executeShell()">
+      <button class="btn" onclick="executeShell()">▶️ تنفيذ</button>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 5: RAG -->
+<section id="tab-rag" class="studio-section">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">📥 إضافة قاعدة لدستور الشركة (Handbook)</div>
+      <input id="ragFilename" type="text" dir="ltr" placeholder="team_handbook.md">
+      <textarea id="ragContent" rows="6" placeholder="قواعد الشركة ووصف المهام..."></textarea>
+      <button class="btn" onclick="saveRagDoc()">📚 حفظ في الدستور</button>
+    </div>
+    <div class="panel">
+      <div class="panel-title">🗂️ وثائق الدستور المدمجة</div>
+      <div id="ragDocsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 6: ADMIN -->
+<section id="tab-admin" class="studio-section">
+  <div class="grid-3">
+    <div class="panel">
+      <div class="panel-title">⚙️ إعدادات عقدة Ollama والنماذج</div>
+      <input id="cfgOllamaHost" type="text" dir="ltr">
+      <select id="cfgModelSelect" dir="ltr"></select>
+      <label style="font-size:0.75rem;color:var(--muted);">Temperature: <span id="tempVal">0.2</span></label>
+      <input id="cfgTemp" type="range" min="0" max="1" step="0.05" value="0.2" oninput="document.getElementById('tempVal').innerText=this.value">
+      <button class="btn" onclick="saveAdminConfig()">💾 حفظ الإعدادات</button>
+      <div id="adminSaveMsg" style="font-size:0.75rem;color:var(--green);"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">📦 سحب نموذج جديد</div>
+      <div style="display:flex;gap:6px;">
+        <input id="pullModelInput" type="text" dir="ltr" placeholder="qwen2.5-coder:14b">
+        <button class="btn purple" onclick="pullOllamaModel()">⬇️ Pull</button>
+      </div>
+      <div id="pullStatus" style="font-size:0.78rem;color:var(--amber);"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">🔄 مزامنة GitHub</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn secondary" onclick="checkGitHubUpdates()">🔍 فحص</button>
+        <button class="btn" onclick="applyGitHubUpdate()">⚡ تحديث</button>
+      </div>
+      <pre id="updateBox" style="font-size:0.72rem;background:#000;padding:8px;border-radius:6px;direction:ltr;text-align:left;max-height:140px;overflow:auto;">جاهز...</pre>
+    </div>
+  </div>
+</section>
+
+<script>
+let selectedAgent = "Genio-Rayes";
+let activeFilePath = "";
+let previewMode = true;
+
+function openTab(tabId, btn) {
+  document.querySelectorAll(".studio-section").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById(tabId).classList.add("active");
+  btn.classList.add("active");
+  if(tabId === "tab-office") {
+    if(!scene) initVoxelHQ();
+    setTimeout(onResize3D, 60);
+  }
+  if(tabId === "tab-ops") loadMemoryLedger();
+}
+
+function logKawaliss(msg) {
+  const box = document.getElementById("kawalissBox");
+  if(!box) return;
+  const d = document.createElement("div");
+  d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function cleanPromptText(txt) {
+  return (txt || "").replace(/\[span_\d+\]\((start|end)_span\)/g, "").trim();
+}
+
+// ============================================================================
+// GENIO OS v8.0 — ARCHITECTURAL VOXEL CYBERPUNK HQ (NADR.AI + MINECRAFT STYLE)
+// ============================================================================
+let scene, camera, renderer;
+let avatarMap = {};
+let roomMap = {};
+let commBeams = [];
+let camAngle = 0, camRadius = 28, camHeight = 25;
+let camTarget = new THREE.Vector3(0, 0, 0);
+let isDragging = false, prevX = 0, prevY = 0;
+
+// Architectural floorplan: 8 rooms arranged around the Golden Central Corridor
+const HQ_LAYOUT = [
+  // Top Center: CEO Executive Suite
+  {id: "Genio-Rayes", title: "CEO SUITE • المدير التنفيذي", role: "Genio-Rayes (Lv.10)", x: 0, z: -11, w: 10, d: 6.5, floorHex: 0x172554, neonHex: 0x00f2fe, doorSide: "south", isAgent: true, skin: 0xfde047},
+  // Left Wing
+  {id: "HR-Director", title: "HR & TALENT • الموارد البشرية", role: "HR-Director (Lv.7)", x: -11.5, z: -7.5, w: 8, d: 6, floorHex: 0x2e1065, neonHex: 0xa855f7, doorSide: "east", isAgent: true, skin: 0xfcd34d},
+  {id: "Infra-Ops", title: "INFRA & DEVOPS • السيرفرات", role: "Infra-Ops (Lv.8)", x: -11.5, z: 0, w: 8, d: 6, floorHex: 0x451a03, neonHex: 0xf59e0b, doorSide: "east", isAgent: true, skin: 0xfde047},
+  {id: "Boardroom", title: "SUNDAY BOARDROOM • قاعة الاجتماعات", role: "Meeting Hall", x: -11.5, z: 7.5, w: 8, d: 6, floorHex: 0x0f172a, neonHex: 0x38bdf8, doorSide: "east", isAgent: false},
+  // Right Wing
+  {id: "Dev-Lead", title: "DEV STUDIO • استوديو البرمجة", role: "Dev-Lead (Lv.9)", x: 11.5, z: -7.5, w: 8, d: 6, floorHex: 0x1e1b4b, neonHex: 0x3b82f6, doorSide: "west", isAgent: true, skin: 0xfde047},
+  {id: "Vision-UI", title: "3D & MEDIA • التصميم والمونتاج", role: "Vision-UI (Lv.7)", x: 11.5, z: 0, w: 8, d: 6, floorHex: 0x4c0519, neonHex: 0xf43f5e, doorSide: "west", isAgent: true, skin: 0xfecdd3},
+  {id: "Library", title: "GITHUB SKILL LIBRARY • مكتبة المهارات", role: "Self-Learning Lab", x: 11.5, z: 7.5, w: 8, d: 6, floorHex: 0x1e1b4b, neonHex: 0xc084fc, doorSide: "west", isAgent: false},
+  // Bottom Center
+  {id: "QA-Sec", title: "QA & SECURITY • الفحص والأمان", role: "QA-Sec (Lv.8)", x: 0, z: 11, w: 10, d: 6.5, floorHex: 0x064e3b, neonHex: 0x10b981, doorSide: "north", isAgent: true, skin: 0xfde047}
+];
+
+function drawBannerSprite(title, sub, borderHex, wScale = 5.4, hScale = 1.25) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "rgba(2, 6, 23, 0.92)";
+  ctx.fillRect(6, 6, 500, 116);
+  ctx.strokeStyle = borderHex;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(6, 6, 500, 116);
+
+  ctx.font = "bold 28px Segoe UI, sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.fillText(title, 256, 48);
+
+  ctx.font = "bold 22px monospace";
+  ctx.fillStyle = borderHex;
+  ctx.fillText(sub, 256, 92);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true}));
+  sp.scale.set(wScale, hScale, 1);
+  return {sprite: sp, canvas, ctx, tex, title, borderHex};
+}
+
+function updateSpeechBubble(av, moodEmoji, statusText) {
+  if(!av || !av.bubbleObj) return;
+  const b = av.bubbleObj;
+  const ctx = b.ctx;
+  ctx.clearRect(0, 0, 512, 128);
+  ctx.fillStyle = "rgba(4, 10, 28, 0.94)";
+  ctx.fillRect(8, 8, 496, 112);
+  ctx.strokeStyle = b.borderHex;
+  ctx.lineWidth = 5;
+  ctx.strokeRect(8, 8, 496, 112);
+
+  ctx.font = "bold 32px Segoe UI, sans-serif";
+  ctx.fillStyle = "#fde047";
+  ctx.textAlign = "center";
+  ctx.fillText(`${moodEmoji} ${av.id}`, 256, 48);
+
+  ctx.font = "bold 24px Segoe UI, sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(statusText, 256, 92);
+  b.tex.needsUpdate = true;
+}
+
+function createVoxelFurniture(roomGroup, rm) {
+  const woodMat = new THREE.MeshStandardMaterial({color: 0x334155, roughness: 0.5});
+  const darkMat = new THREE.MeshStandardMaterial({color: 0x0f172a, roughness: 0.6});
+
+  if(rm.isAgent) {
+    // Executive or Department Desk
+    const desk = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.8, 1.3), woodMat);
+    desk.position.set(0, 0.4, -0.8);
+    roomGroup.add(desk);
+
+    // Dual Voxel Monitors
+    const monMat = new THREE.MeshStandardMaterial({color: rm.neonHex, emissive: rm.neonHex, emissiveIntensity: 0.9});
+    const mon1 = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 0.1), monMat);
+    mon1.position.set(-0.6, 1.15, -1.1);
+    mon1.rotation.y = 0.15;
+    const mon2 = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 0.1), monMat);
+    mon2.position.set(0.6, 1.15, -1.1);
+    mon2.rotation.y = -0.15;
+    roomGroup.add(mon1, mon2);
+
+    // Voxel Red/Gold Telephone on Desk (for Phone Dispatch animation)
+    const phoneBase = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.18, 0.32), new THREE.MeshStandardMaterial({color: 0xef4444}));
+    phoneBase.position.set(1.05, 0.88, -0.65);
+    roomGroup.add(phoneBase);
+
+    // Voxel Potted Plant in Corner
+    const pot = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.55), new THREE.MeshStandardMaterial({color: 0xb45309}));
+    pot.position.set(-rm.w/2 + 0.8, 0.28, -rm.d/2 + 0.8);
+    const leaves = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.95, 0.85), new THREE.MeshStandardMaterial({color: 0x10b981}));
+    leaves.position.set(-rm.w/2 + 0.8, 0.95, -rm.d/2 + 0.8);
+    roomGroup.add(pot, leaves);
+
+    // Server Rack / Bookshelf in opposite corner
+    const rack = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.1, 0.6), darkMat);
+    rack.position.set(rm.w/2 - 0.8, 1.05, -rm.d/2 + 0.6);
+    roomGroup.add(rack);
+  } else if(rm.id === "Boardroom") {
+    // Long Conference Table + 6 Voxel Chairs
+    const table = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.75, 2.0), new THREE.MeshStandardMaterial({color: 0x1e3a8a}));
+    table.position.set(0, 0.38, 0);
+    roomGroup.add(table);
+    for(let i=-1; i<=1; i++) {
+      const c1 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.9, 0.6), woodMat);
+      c1.position.set(i * 1.4, 0.45, -1.4);
+      const c2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.9, 0.6), woodMat);
+      c2.position.set(i * 1.4, 0.45, 1.4);
+      roomGroup.add(c1, c2);
+    }
+  } else if(rm.id === "Library") {
+    // GitHub Skill Library Bookshelves
+    for(let z=-1.8; z<=1.8; z+=1.8) {
+      const shelf = new THREE.Mesh(new THREE.BoxGeometry(4.5, 2.0, 0.45), new THREE.MeshStandardMaterial({color: 0x581c87, emissive: 0x3b0764, emissiveIntensity: 0.4}));
+      shelf.position.set(0, 1.0, z);
+      roomGroup.add(shelf);
+    }
+  }
+}
+
+function buildMinecraftCharacter(colorHex, skinHex) {
+  const group = new THREE.Group();
+  const suitMat = new THREE.MeshStandardMaterial({color: colorHex, roughness: 0.3});
+  const skinMat = new THREE.MeshStandardMaterial({color: skinHex, roughness: 0.4});
+  const pantsMat = new THREE.MeshStandardMaterial({color: 0x1e293b, roughness: 0.6});
+  const eyeMat = new THREE.MeshBasicMaterial({color: 0x00f2fe});
+  const hairMat = new THREE.MeshStandardMaterial({color: 0x090d16});
+
+  // Legs
+  const legGeo = new THREE.BoxGeometry(0.32, 0.68, 0.32);
+  const leftLeg = new THREE.Mesh(legGeo, pantsMat); leftLeg.position.set(-0.19, 0.34, 0);
+  const rightLeg = new THREE.Mesh(legGeo, pantsMat); rightLeg.position.set(0.19, 0.34, 0);
+  group.add(leftLeg, rightLeg);
+
+  // Torso
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.92, 0.42), suitMat);
+  torso.position.set(0, 1.12, 0);
+  group.add(torso);
+
+  // Head
+  const headGroup = new THREE.Group();
+  headGroup.position.set(0, 1.92, 0);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.68, 0.68), skinMat);
+  const hair = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.22, 0.72), hairMat);
+  hair.position.y = 0.28;
+  const visor = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.14, 0.08), eyeMat);
+  visor.position.set(0, 0.04, -0.35);
+  headGroup.add(head, hair, visor);
+  group.add(headGroup);
+
+  // Arms
+  const armGeo = new THREE.BoxGeometry(0.28, 0.8, 0.28);
+  const leftArm = new THREE.Mesh(armGeo, suitMat); leftArm.position.set(-0.54, 1.15, 0);
+  const rightArm = new THREE.Mesh(armGeo, suitMat); rightArm.position.set(0.54, 1.15, 0);
+  group.add(leftArm, rightArm);
+
+  group.userData = {leftArm, rightArm, leftLeg, rightLeg, headGroup, visor};
+  return group;
+}
+
+function initVoxelHQ() {
+  const container = document.getElementById("threeCanvas");
+  const box = document.getElementById("viewportBox");
+  if(!container || !box) return;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x020617);
+
+  camera = new THREE.PerspectiveCamera(42, box.clientWidth / box.clientHeight, 0.1, 1000);
+  setCameraPreset("top");
+
+  renderer = new THREE.WebGLRenderer({canvas: container, antialias: true});
+  renderer.setSize(box.clientWidth, box.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // Rich Cyberpunk + Studio Lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+  const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+  dirLight.position.set(14, 30, 18);
+  scene.add(dirLight);
+
+  // Main Base Floor + Voxel Grid
+  const baseFloor = new THREE.Mesh(
+    new THREE.PlaneGeometry(36, 32),
+    new THREE.MeshStandardMaterial({color: 0x050b1a, roughness: 0.85})
+  );
+  baseFloor.rotation.x = -Math.PI / 2;
+  scene.add(baseFloor);
+
+  const mainGrid = new THREE.GridHelper(36, 36, 0x00f2fe, 0x111c38);
+  mainGrid.position.y = 0.02;
+  scene.add(mainGrid);
+
+  // Golden / Cyan Intersecting Corridors (Like Nadr.ai HQ Floorplan)
+  const vHall = new THREE.Mesh(
+    new THREE.BoxGeometry(4.2, 0.06, 20),
+    new THREE.MeshStandardMaterial({color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.35})
+  );
+  vHall.position.set(0, 0.03, 0);
+  scene.add(vHall);
+
+  const hHall = new THREE.Mesh(
+    new THREE.BoxGeometry(22, 0.06, 3.4),
+    new THREE.MeshStandardMaterial({color: 0x00f2fe, emissive: 0x0284c7, emissiveIntensity: 0.3})
+  );
+  hHall.position.set(0, 0.03, 0);
+  scene.add(hHall);
+
+  // Build All 8 Rooms
+  HQ_LAYOUT.forEach((rm, idx) => {
+    const rg = new THREE.Group();
+    rg.position.set(rm.x, 0, rm.z);
+
+    // Room Floor Tile
+    const tile = new THREE.Mesh(
+      new THREE.BoxGeometry(rm.w, 0.12, rm.d),
+      new THREE.MeshStandardMaterial({color: rm.floorHex, roughness: 0.6})
+    );
+    tile.position.y = 0.06;
+    rg.add(tile);
+
+    // Glowing Neon Room Border Walls (Cutaway style for full visibility)
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: rm.neonHex, emissive: rm.neonHex, emissiveIntensity: 0.4,
+      transparent: true, opacity: 0.65
+    });
+    const wallH = 1.65;
+    const nWall = new THREE.Mesh(new THREE.BoxGeometry(rm.w, wallH, 0.16), wallMat);
+    nWall.position.set(0, wallH/2, -rm.d/2);
+    const sWall = new THREE.Mesh(new THREE.BoxGeometry(rm.w, wallH, 0.16), wallMat);
+    sWall.position.set(0, wallH/2, rm.d/2);
+    const wWall = new THREE.Mesh(new THREE.BoxGeometry(0.16, wallH, rm.d), wallMat);
+    wWall.position.set(-rm.w/2, wallH/2, 0);
+    const eWall = new THREE.Mesh(new THREE.BoxGeometry(0.16, wallH, rm.d), wallMat);
+    eWall.position.set(rm.w/2, wallH/2, 0);
+
+    // Leave doorway open toward the central corridor
+    if(rm.doorSide !== "north") rg.add(nWall);
+    if(rm.doorSide !== "south") rg.add(sWall);
+    if(rm.doorSide !== "west") rg.add(wWall);
+    if(rm.doorSide !== "east") rg.add(eWall);
+
+    createVoxelFurniture(rg, rm);
+
+    // Status Lamp Orb on Room Corner
+    const lamp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.32, 16, 16),
+      new THREE.MeshStandardMaterial({color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 1.2})
+    );
+    lamp.position.set(rm.w/2 - 0.6, 2.3, -rm.d/2 + 0.6);
+    rg.add(lamp);
+
+    // Room Header Banner
+    const hexColor = "#" + rm.neonHex.toString(16).padStart(6, "0");
+    const bannerObj = drawBannerSprite(rm.title, rm.role, hexColor, 5.2, 1.2);
+    bannerObj.sprite.position.set(0, 3.6, -rm.d/2 + 0.4);
+    rg.add(bannerObj.sprite);
+
+    scene.add(rg);
+    roomMap[rm.id] = {group: rg, lamp, config: rm};
+
+    // Spawn Living Voxel Avatar for Agent Rooms
+    if(rm.isAgent) {
+      const charMesh = buildMinecraftCharacter(rm.neonHex, rm.skin);
+      const homeX = rm.x;
+      const homeZ = rm.z + 0.35;
+      charMesh.position.set(homeX, 0.12, homeZ);
+
+      // Floating Speech/Emotion Bubble above head
+      const bubbleObj = drawBannerSprite(`😊 ${rm.id}`, "جاهز للعمل • IDLE", hexColor, 3.6, 0.9);
+      bubbleObj.sprite.position.set(0, 3.1, 0);
+      charMesh.add(bubbleObj.sprite);
+
+      scene.add(charMesh);
+
+      avatarMap[rm.id] = {
+        id: rm.id,
+        mesh: charMesh,
+        homeX,
+        homeZ,
+        waypoints: [],
+        state: "idle", // idle | working | phone | walking | celebrating
+        mood: "😊",
+        lamp,
+        bubbleObj,
+        phase: idx * 1.3
+      };
+    }
+  });
+
+  // Camera Orbit & Zoom Controls
+  container.addEventListener("pointerdown", e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+  window.addEventListener("pointerup", () => { isDragging = false; });
+  window.addEventListener("pointermove", e => {
+    if(!isDragging) return;
+    const dx = e.clientX - prevX;
+    const dy = e.clientY - prevY;
+    prevX = e.clientX; prevY = e.clientY;
+    camAngle -= dx * 0.007;
+    camHeight = Math.max(7, Math.min(36, camHeight + dy * 0.08));
+    updateCamera();
+  });
+  container.addEventListener("wheel", e => {
+    e.preventDefault();
+    camRadius = Math.max(8, Math.min(38, camRadius + e.deltaY * 0.015));
+    updateCamera();
+  }, {passive: false});
+
+  window.addEventListener("resize", onResize3D);
+  animateVoxelHQ();
+}
+
+function updateCamera() {
+  if(!camera) return;
+  camera.position.x = camTarget.x + Math.sin(camAngle) * camRadius;
+  camera.position.z = camTarget.z + Math.cos(camAngle) * camRadius;
+  camera.position.y = camHeight;
+  camera.lookAt(camTarget);
+}
+
+function setCameraPreset(mode) {
+  if(mode === "top") {
+    camTarget.set(0, 0, 0);
+    camAngle = 0;
+    camRadius = 14;
+    camHeight = 31;
+  } else {
+    camTarget.set(0, 0, 0);
+    camAngle = 0.55;
+    camRadius = 25;
+    camHeight = 18;
+  }
+  updateCamera();
+}
+
+function focusRoom(roomId) {
+  const rm = HQ_LAYOUT.find(r => r.id === roomId);
+  if(!rm) return;
+  camTarget.set(rm.x, 1.2, rm.z);
+  camRadius = 10;
+  camHeight = 8.5;
+  camAngle = 0;
+  updateCamera();
+  if(rm.isAgent) selectAgent(roomId);
+}
+
+function onResize3D() {
+  const box = document.getElementById("viewportBox");
+  if(!renderer || !camera || !box || box.clientWidth === 0) return;
+  camera.aspect = box.clientWidth / box.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(box.clientWidth, box.clientHeight);
+}
+
+// ============================================================================
+// LIVING ANIMATIONS, EMOTIONS & CORRIDOR PATHFINDING
+// ============================================================================
+function setAgentState(agentId, state, mood, text) {
+  const av = avatarMap[agentId];
+  if(!av) return;
+  av.state = state;
+  av.mood = mood;
+  updateSpeechBubble(av, mood, text);
+
+  if(state === "working" || state === "phone") {
+    av.lamp.material.color.setHex(0xf59e0b);
+    av.lamp.material.emissive.setHex(0xf59e0b);
+  } else if(state === "walking") {
+    av.lamp.material.color.setHex(0x00f2fe);
+    av.lamp.material.emissive.setHex(0x00f2fe);
+  } else {
+    av.lamp.material.color.setHex(0x10b981);
+    av.lamp.material.emissive.setHex(0x10b981);
+  }
+}
+
+function sendAvatarAlongHallway(agentId, destX, destZ, arrivalMood, arrivalText, stayMs = 3500) {
+  const av = avatarMap[agentId];
+  if(!av) return;
+  setAgentState(agentId, "walking", "🚶‍♂️", "يتحرك عبر الممر...");
+  // Path through central hallway (x=0) so avatars never walk through walls
+  av.waypoints = [
+    {x: 0, z: av.mesh.position.z},
+    {x: 0, z: destZ},
+    {x: destX, z: destZ, onArrive: () => {
+      setAgentState(agentId, "celebrating", arrivalMood, arrivalText);
+      if(stayMs > 0) {
+        setTimeout(() => {
+          setAgentState(agentId, "walking", "🚶‍♂️", "يعود إلى مكتبه...");
+          av.waypoints = [
+            {x: 0, z: destZ},
+            {x: 0, z: av.homeZ},
+            {x: av.homeX, z: av.homeZ, onArrive: () => {
+              setAgentState(agentId, "idle", "😊", "في مكتبه • جاهز");
+            }}
+          ];
+        }, stayMs);
+      }
+    }}
+  ];
+}
+
+function spawnLaserSignal(fromId, toId, colorHex = 0x00f2fe) {
+  const a1 = avatarMap[fromId], a2 = avatarMap[toId];
+  if(!a1 || !a2 || !scene) return;
+  const pts = [
+    new THREE.Vector3(a1.mesh.position.x, 2.2, a1.mesh.position.z),
+    new THREE.Vector3(0, 3.5, 0),
+    new THREE.Vector3(a2.mesh.position.x, 2.2, a2.mesh.position.z)
+  ];
+  const curve = new THREE.QuadraticBezierCurve3(pts[0], pts[1], pts[2]);
+  const geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(24));
+  const mat = new THREE.LineBasicMaterial({color: colorHex});
+  const line = new THREE.Line(geo, mat);
+  scene.add(line);
+  setTimeout(() => scene.remove(line), 1800);
+}
+
+// 1. CEO Picks Up the Phone & Dispatches Tasks (Exactly like Nadr.ai video)
+function triggerPhoneDispatch() {
+  setAgentState("Genio-Rayes", "phone", "📞", "يرفع السماعة ويوزع المهام!");
+  document.getElementById("hqStatusText").innerHTML = "📞 <b>Genio-Rayes (CEO):</b> يرفع السماعة الآن ويوزع المهام على الأقسام عبر الشبكة...";
+  logKawaliss("📞 CEO picked up the phone and dispatched tasks to all departments.");
+
+  const targets = ["HR-Director", "Dev-Lead", "Infra-Ops", "QA-Sec", "Vision-UI"];
+  targets.forEach((id, i) => {
+    setTimeout(() => {
+      spawnLaserSignal("Genio-Rayes", id, 0x00f2fe);
+      setAgentState(id, "working", "⚡", "يشتغل على مهمته...");
+    }, (i + 1) * 350);
+  });
+
+  setTimeout(() => {
+    setAgentState("Genio-Rayes", "idle", "👑", "يراقب تقدم الفريق");
+  }, 3500);
+}
+
+// 2. Employee Walks to CEO Suite to Deliver Finished Report
+function triggerDeliverReport(agentId = "Dev-Lead") {
+  const ceo = avatarMap["Genio-Rayes"];
+  if(!ceo) return;
+  document.getElementById("hqStatusText").innerHTML = `🚶‍♂️ <b>${agentId}:</b> أنهى شغله ويتوجه الآن عبر الممر الذهبي لتسليم التقرير للمدير التنفيذي!`;
+  logKawaliss(`✅ ${agentId} walking to CEO Suite to deliver report.`);
+  sendAvatarAlongHallway(agentId, ceo.homeX, ceo.homeZ + 1.8, "✅", "يسلّم التقرير للمدير!", 2600);
+}
+
+// 3. Sunday Boardroom Meeting (All staff walk to Boardroom)
+function triggerBoardroomMeeting() {
+  document.getElementById("hqStatusText").innerHTML = "🤝 <b>اجتماع الشركة الأسبوعي:</b> جميع الموظفين يتجمعون في قاعة الاجتماعات لمراجعة الأداء!";
+  logKawaliss("📅 Weekly Boardroom meeting started. All agents walking to Boardroom.");
+  const spots = [
+    {x: -13.0, z: 6.2}, {x: -11.5, z: 6.2}, {x: -10.0, z: 6.2},
+    {x: -13.0, z: 8.8}, {x: -11.5, z: 8.8}, {x: -10.0, z: 8.8}
+  ];
+  Object.keys(avatarMap).forEach((id, idx) => {
+    const sp = spots[idx % spots.length];
+    sendAvatarAlongHallway(id, sp.x, sp.z, "🤝", "في اجتماع الفريق", 5000);
+  });
+}
+
+// 4. Weekly GitHub Skill Library Study
+function triggerLibraryStudy() {
+  document.getElementById("hqStatusText").innerHTML = "📚 <b>ساعة التطوير الذاتي:</b> المطورون في مكتبة GitHub للبحث عن مهارات جديدة!";
+  logKawaliss("🧠 Agents studying new GitHub skills in the Library.");
+  sendAvatarAlongHallway("Dev-Lead", 10.2, 7.5, "📚", "يدرس مهارة في GitHub", 4500);
+  sendAvatarAlongHallway("QA-Sec", 12.6, 7.5, "🧠", "يحلل كود حماية جديد", 4500);
+}
+
+function animateVoxelHQ() {
+  requestAnimationFrame(animateVoxelHQ);
+  const t = Date.now() * 0.005;
+
+  Object.values(avatarMap).forEach(av => {
+    const parts = av.mesh.userData;
+
+    if(av.waypoints && av.waypoints.length > 0) {
+      const wp = av.waypoints[0];
+      const dx = wp.x - av.mesh.position.x;
+      const dz = wp.z - av.mesh.position.z;
+      const dist = Math.hypot(dx, dz);
+
+      if(dist > 0.12) {
+        av.mesh.position.x += (dx / dist) * 0.14;
+        av.mesh.position.z += (dz / dist) * 0.14;
+        av.mesh.rotation.y = Math.atan2(-dx, -dz);
+        // Minecraft walking leg & arm swing
+        parts.leftLeg.rotation.x = Math.sin(t * 3.2) * 0.65;
+        parts.rightLeg.rotation.x = -Math.sin(t * 3.2) * 0.65;
+        parts.leftArm.rotation.x = -Math.sin(t * 3.2) * 0.55;
+        parts.rightArm.rotation.x = Math.sin(t * 3.2) * 0.55;
+      } else {
+        av.mesh.position.x = wp.x;
+        av.mesh.position.z = wp.z;
+        av.waypoints.shift();
+        if(wp.onArrive) wp.onArrive();
+      }
+    } else {
+      av.mesh.rotation.y = 0;
+      parts.leftLeg.rotation.x = 0;
+      parts.rightLeg.rotation.x = 0;
+
+      if(av.state === "working") {
+        parts.leftArm.rotation.x = -0.75 + Math.sin(t * 5.5) * 0.25;
+        parts.rightArm.rotation.x = -0.75 - Math.sin(t * 5.5) * 0.25;
+        parts.headGroup.rotation.y = Math.sin(t * 2.2) * 0.18;
+      } else if(av.state === "phone") {
+        parts.rightArm.rotation.x = -2.1; // Holding phone to ear
+        parts.leftArm.rotation.x = Math.sin(t * 2) * 0.15;
+        parts.headGroup.rotation.z = 0.12;
+      } else if(av.state === "celebrating") {
+        parts.leftArm.rotation.x = -2.6 + Math.sin(t * 4) * 0.2;
+        parts.rightArm.rotation.x = -2.6 - Math.sin(t * 4) * 0.2;
+        av.mesh.position.y = 0.12 + Math.abs(Math.sin(t * 3)) * 0.22;
+      } else {
+        av.mesh.position.y = 0.12;
+        parts.leftArm.rotation.x = Math.sin(t * 0.5 + av.phase) * 0.06;
+        parts.rightArm.rotation.x = -Math.sin(t * 0.5 + av.phase) * 0.06;
+        parts.headGroup.rotation.z = 0;
+        parts.headGroup.rotation.y = Math.sin(t * 0.4 + av.phase) * 0.12;
+      }
+    }
+  });
+
+  if(renderer && scene && camera) renderer.render(scene, camera);
+}
+
+// ============================================================================
+// REAL AI STREAMING & SWARM INTEGRATION WITH 3D MAP
+// ============================================================================
+async function streamAgentTask(agentId, rawPrompt) {
+  const prompt = cleanPromptText(rawPrompt);
+  if (!prompt) return;
+
+  if(agentId === "Genio-Rayes") {
+    setAgentState("Genio-Rayes", "phone", "📞", "يخطط ويوزع المهام...");
+  } else {
+    spawnLaserSignal("Genio-Rayes", agentId, 0x00f2fe);
+    setAgentState(agentId, "working", "⚡", "يكتب الكود وينفذ...");
+  }
+
+  document.getElementById("hqStatusText").innerHTML = `⚡ <b>${agentId}:</b> يشتغل الآن بشكل حي على المهمة...`;
+
+  const stream = document.getElementById("chatStream");
+  const msgDiv = document.createElement("div");
+  msgDiv.className = "msg";
+  msgDiv.innerHTML = `<div><b>🤖 ${agentId}</b> <span class="badge" id="liveBadge">⏳ يشتغل...</span></div><div class="live-body" style="margin-top:6px;white-space:pre-wrap;"></div><div class="live-actions" style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;"></div>`;
+  stream.appendChild(msgDiv);
+  stream.scrollTop = stream.scrollHeight;
+
+  const bodyEl = msgDiv.querySelector(".live-body");
+  const actEl = msgDiv.querySelector(".live-actions");
+  const badgeEl = msgDiv.querySelector("#liveBadge");
+
+  try {
+    const response = await fetch("/api/task/stream", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({agent_id: agentId, prompt})
+    });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop();
+      for (const part of parts) {
+        if (!part.startsWith("data: ")) continue;
+        const ev = JSON.parse(part.slice(6));
+        if (ev.event === "stage") logKawaliss(ev.message);
+        else if (ev.event === "token") {
+          bodyEl.textContent += ev.token;
+          stream.scrollTop = stream.scrollHeight;
+        }
+        else if (ev.event === "action") {
+          const a = ev.action;
+          if(a.type==="write_file") actEl.innerHTML += `<span class="badge" style="background:rgba(16,185,129,0.2);color:#10b981;">💾 ${a.path}</span>`;
+          else if(a.type==="run_cmd") actEl.innerHTML += `<span class="badge">⚙️ ${a.cmd}</span>`;
+        }
+        else if (ev.event === "done") {
+          badgeEl.innerText = `✅ تم (${ev.elapsed_sec}s)`;
+          logKawaliss(ev.message);
+          if(agentId !== "Genio-Rayes") {
+            triggerDeliverReport(agentId);
+          } else {
+            setAgentState("Genio-Rayes", "idle", "👑", "تم التوجيه بنجاح");
+          }
+          refreshAll();
+        }
+      }
+    }
+  } catch(e) {
+    setAgentState(agentId, "idle", "⚠️", "خطأ في الاتصال");
+    logKawaliss(`⚠️ Error: ${e}`);
+  }
+}
+
+async function streamSingleAgentTask() {
+  const box = document.getElementById("promptBox");
+  const raw = box.value.trim();
+  if(!raw) return;
+  box.value = "";
+  document.getElementById("chatStream").innerHTML += `<div class="msg user"><b>🧑‍💻 عزمي (المالك):</b><br>${cleanPromptText(raw)}</div>`;
+  await streamAgentTask(selectedAgent, `${raw}\n\nIMPORTANT: Save all generated files inside a dedicated project folder using <write_file path="project_folder/file.ext">...</write_file>.`);
+}
+
+async function runSwarmLive() {
+  const box = document.getElementById("promptBox");
+  const mission = cleanPromptText(box.value.trim()) || "Build a complete modular web app inside folder 'voxel_hq_app/' with index.html, app.py, and README.md";
+  box.value = "";
+  triggerPhoneDispatch();
+  document.getElementById("chatStream").innerHTML += `<div class="msg user"><b>🐝 مهمة الشركة المتكاملة:</b><br>${mission}</div>`;
+  await streamAgentTask("Genio-Rayes", `STEP 1 (CEO): Plan project folder structure and write README.md using <write_file path="..."> for:\n${mission}`);
+  await streamAgentTask("Dev-Lead", `STEP 2 (Dev-Lead): Write all code files using <write_file path="..."> for:\n${mission}`);
+  await streamAgentTask("QA-Sec", `STEP 3 (QA-Sec): Verify all files using <run_cmd>...</run_cmd> for:\n${mission}`);
+}
+
+// ============================================================================
+// MULTIMODAL WORKSPACE & SYSTEM STATUS
+// ============================================================================
+async function loadFile(path) {
+  activeFilePath = path;
+  document.getElementById("currentEditPath").innerText = path;
+  const dlBtn = document.getElementById("downloadFileBtn");
+  dlBtn.style.display = "inline-flex";
+  dlBtn.href = `/api/file/raw?path=${encodeURIComponent(path)}&download=true`;
+
+  const ext = path.split(".").pop().toLowerCase();
+  const prevBox = document.getElementById("multimodalPreview");
+  const codeBox = document.getElementById("codeEditor");
+
+  if(["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
+    prevBox.style.display = "block"; codeBox.style.display = "none";
+    prevBox.innerHTML = `<div style="text-align:center;"><img src="/api/file/raw?path=${encodeURIComponent(path)}" style="max-width:100%;max-height:380px;border-radius:8px;"></div>`;
+    return;
+  }
+  if(["mp4", "webm", "ogg", "mov"].includes(ext)) {
+    prevBox.style.display = "block"; codeBox.style.display = "none";
+    prevBox.innerHTML = `<video controls style="width:100%;max-height:380px;border-radius:8px;"><source src="/api/file/raw?path=${encodeURIComponent(path)}"></video>`;
+    return;
+  }
+
+  const r = await fetch("/api/file/read", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({path})});
+  const d = await r.json();
+  if(!d.ok) return;
+  codeBox.value = d.content;
+
+  if(previewMode && ext === "md" && window.marked) {
+    prevBox.style.display = "block"; codeBox.style.display = "none";
+    prevBox.innerHTML = marked.parse(d.content);
+  } else if(previewMode && ["html", "htm"].includes(ext)) {
+    prevBox.style.display = "block"; codeBox.style.display = "none";
+    prevBox.innerHTML = `<iframe src="/api/file/raw?path=${encodeURIComponent(path)}" style="width:100%;height:360px;border:none;border-radius:8px;background:#fff;"></iframe>`;
+  } else {
+    prevBox.style.display = "none"; codeBox.style.display = "block";
+  }
+}
+
+function togglePreviewMode() {
+  previewMode = !previewMode;
+  if(activeFilePath) loadFile(activeFilePath);
+}
+
+function exportZipFolder() {
+  const folder = document.getElementById("zipFolderInput").value.trim();
+  window.open(`/api/workspace/zip?folder=${encodeURIComponent(folder)}`, "_blank");
+}
+
+async function saveCurrentFile() {
+  if(!activeFilePath) return;
+  const content = document.getElementById("codeEditor").value;
+  await fetch("/api/file/save", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({path: activeFilePath, content})});
+  loadFile(activeFilePath);
+  refreshAll();
+}
+
+async function refreshAll() {
+  try {
+    const r = await fetch("/api/status");
+    const d = await r.json();
+    document.getElementById("ramLabel").innerText = `${d.telemetry.ram_used_gb}/${d.telemetry.ram_total_gb} GB`;
+    document.getElementById("diskLabel").innerText = `${d.telemetry.disk_free_gb} GB`;
+    document.getElementById("modelLabel").innerText = d.telemetry.active_model;
+    if(d.telemetry.memory_stats) document.getElementById("pbLabel").innerText = d.telemetry.memory_stats.playbooks_count;
+    document.getElementById("cfgOllamaHost").value = d.telemetry.ollama_host;
+
+    document.getElementById("agentsContainer").innerHTML = Object.entries(d.agents).map(([id, a]) => {
+      const av = avatarMap[id];
+      const mood = av ? av.mood : "😊";
+      return `
+      <div class="agent-card ${id === selectedAgent ? 'active' : ''}" onclick="focusRoom('${id}')">
+        <div><span>${mood}</span> <b>${a.icon} ${id}</b> <span style="font-size:0.7rem;color:var(--muted);">(${a.badge})</span></div>
+        <span class="badge">Lv.8</span>
+      </div>`;
+    }).join("");
+
+    document.getElementById("ideFilesList").innerHTML = d.files.map(f => `
+      <div class="file-item ${f.path === activeFilePath ? 'active' : ''}" onclick="loadFile('${f.path}')">
+        <span>📄 ${f.path}</span>
+        <span style="color:var(--muted);">${f.size_kb} KB</span>
+      </div>
+    `).join("");
+
+    document.getElementById("ragDocsList").innerHTML = d.rag_docs.map(doc => `
+      <div class="msg" style="padding:8px;"><b>📘 ${doc.name}</b> (${doc.size_kb} KB)</div>
+    `).join("");
+
+    const sel = document.getElementById("cfgModelSelect");
+    const mList = d.ollama.models.length ? d.ollama.models : [d.telemetry.active_model];
+    sel.innerHTML = mList.map(m => `<option value="${m}" ${m===d.telemetry.active_model?'selected':''}>${m}</option>`).join("");
+  } catch(e) {}
+}
+
+function selectAgent(id) {
+  selectedAgent = id;
+  document.getElementById("curAgentName").innerText = id;
+  refreshAll();
+}
+
+async function loadMemoryLedger() {
+  const r = await fetch("/api/memory");
+  const d = await r.json();
+  document.getElementById("ledgerViewer").textContent = (d.ledger || []).map(x => JSON.stringify(x, null, 2)).join("\n-----------------\n");
+}
+
+async function executeShell() {
+  const inp = document.getElementById("shellInput");
+  const cmd = inp.value.trim();
+  if(!cmd) return;
+  inp.value = "";
+  const out = document.getElementById("termOutput");
+  out.innerText += `\n\n$ ${cmd}\n⏳...`;
+  const r = await fetch("/api/shell", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({cmd})});
+  const d = await r.json();
+  out.innerText = out.innerText.replace("⏳...", d.output || "(Done)");
+  out.scrollTop = out.scrollHeight;
+}
+
+async function saveRagDoc() {
+  const filename = document.getElementById("ragFilename").value.trim();
+  const content = document.getElementById("ragContent").value.trim();
+  if(!filename || !content) return;
+  await fetch("/api/rag/add", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({filename, content})});
+  document.getElementById("ragFilename").value = "";
+  document.getElementById("ragContent").value = "";
+  refreshAll();
+}
+
+async function saveAdminConfig() {
+  await fetch("/api/config", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      ollama_host: document.getElementById("cfgOllamaHost").value,
+      primary_model: document.getElementById("cfgModelSelect").value,
+      temperature: parseFloat(document.getElementById("cfgTemp").value),
+      num_ctx: 8192
+    })
+  });
+  document.getElementById("adminSaveMsg").innerText = "✅ تم الحفظ!";
+  refreshAll();
+}
+
+async function pullOllamaModel() {
+  const name = document.getElementById("pullModelInput").value.trim();
+  if(!name) return;
+  document.getElementById("pullStatus").innerText = "⏳ جاري السحب...";
+  const r = await fetch("/api/models/pull", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({model_name: name})});
+  const d = await r.json();
+  document.getElementById("pullStatus").innerText = d.ok ? "✅ اكتمل السحب!" : "❌ خطأ";
+  refreshAll();
+}
+
+async function checkGitHubUpdates() {
+  const r = await fetch("/api/update/check");
+  const d = await r.json();
+  document.getElementById("updateBox").innerText = JSON.stringify(d, null, 2);
+}
+
+async function applyGitHubUpdate() {
+  const r = await fetch("/api/update/apply", {method: "POST"});
+  const d = await r.json();
+  document.getElementById("updateBox").innerText = d.output || d.error || "Done";
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  initVoxelHQ();
+  setTimeout(onResize3D, 150);
+  setTimeout(onResize3D, 600);
+  refreshAll();
+});
+</script>
+</body>
+</html>
+"""
+
+INDEX_HTML.parent.mkdir(parents=True, exist_ok=True)
+INDEX_HTML.write_text(HTML_CODE, encoding="utf-8")
+print("✅ Successfully deployed Genio OS v8.0 Full-Screen Voxel Cyberpunk HQ!")
