@@ -22,6 +22,8 @@ from core.engine import (
 )
 from web.routers import auth as auth_api
 from web.routers import persona as persona_api
+from web.routers import i18n as i18n_api
+from web.routers import orgs as orgs_api
 from web.routers import rag as rag_api
 from web.routers import tools as tools_api
 
@@ -36,6 +38,10 @@ app.include_router(persona_api.router)
 app.include_router(tools_api.router)
 # المرحلة 4: RAG + model router
 app.include_router(rag_api.router)
+# المرحلة 5: i18n / RTL
+app.include_router(i18n_api.router)
+# المرحلة 6: orgs / rapports / audit export
+app.include_router(orgs_api.router)
 
 
 @app.exception_handler(StarletteHTTPException)

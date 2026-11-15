@@ -20,8 +20,10 @@ from core.db import get_db
 
 router = APIRouter(prefix="/api", tags=["auth"])
 
-# Reachable without a session (login itself, and the one-time bootstrap).
+# Reachable without a session (login itself, the one-time bootstrap, and the
+# UI catalogue the login screen needs before anyone is signed in).
 PUBLIC_PATHS = {"/api/auth/login", "/api/auth/bootstrap"}
+PUBLIC_PREFIXES = ("/api/i18n",)
 MUTATING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
 
@@ -76,7 +78,8 @@ def current_user(request: Request) -> Optional[Dict[str, Any]]:
 
 def enforce(request: Request, user: Optional[Dict[str, Any]]) -> None:
     """Session required once accounts exist; CSRF required on mutations."""
-    if request.url.path in PUBLIC_PATHS:
+    path = request.url.path
+    if path in PUBLIC_PATHS or path.startswith(PUBLIC_PREFIXES):
         return
     with get_db() as conn:
         if auth_core.user_count(conn) == 0:
