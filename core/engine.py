@@ -33,6 +33,14 @@ def workspace_override(path) -> object:
 def reset_workspace(token) -> None:
     _WORKSPACE_OVERRIDE.reset(token)
 
+
+def current_workspace(fallback: Optional[Path] = None) -> Optional[Path]:
+    """Workspace of the current request (set per account by the middleware)."""
+    override = _WORKSPACE_OVERRIDE.get()
+    if override is not None:
+        return Path(override)
+    return Path(fallback) if fallback is not None else None
+
 AGENTS_REGISTRY = {
     "HR-Director": {
         "title": "HR-Director (Chief Talent Officer & Agent Synthesizer)",

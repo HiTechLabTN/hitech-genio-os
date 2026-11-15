@@ -22,6 +22,7 @@ from core.engine import (
 )
 from web.routers import auth as auth_api
 from web.routers import persona as persona_api
+from web.routers import tools as tools_api
 
 app = FastAPI(title="Genio OS v5.0 Singularity — Self-Evolving AI Studio")
 engine = GenioEngine()
@@ -30,6 +31,8 @@ engine = GenioEngine()
 app.include_router(auth_api.router)
 # المرحلة 2: onboarding / personas / mode
 app.include_router(persona_api.router)
+# المرحلة 3: tools / approvals / audit
+app.include_router(tools_api.router)
 
 
 @app.exception_handler(StarletteHTTPException)

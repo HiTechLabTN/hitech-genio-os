@@ -150,7 +150,20 @@ CREATE TABLE IF NOT EXISTS skill_packs (
 );
 """
 
-MIGRATIONS: List[str] = [MIGRATION_1]
+MIGRATION_2 = """
+CREATE TABLE IF NOT EXISTS approvals (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tool       TEXT NOT NULL,
+    params     TEXT NOT NULL DEFAULT '{}',
+    status     TEXT NOT NULL DEFAULT 'pending',
+    created_at REAL NOT NULL,
+    decided_at REAL,
+    decided_by INTEGER
+);
+"""
+
+MIGRATIONS: List[str] = [MIGRATION_1, MIGRATION_2]
 
 
 def data_dir() -> Path:
