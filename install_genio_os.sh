@@ -32,9 +32,14 @@ C_RED='\033[38;5;196m'
 C_PURPLE='\033[38;5;141m'
 
 MODE="install"
-if [ "${1:-}" = "--check" ]; then
-    MODE="check"
-fi
+SKIP_SYSTEMD="${GENIO_SKIP_SYSTEMD:-0}"
+for arg in "$@"; do
+    case "${arg}" in
+        --check) MODE="check" ;;
+        --no-service) SKIP_SYSTEMD=1 ;;
+        *) echo "خيار غير معروف: ${arg}" >&2; exit 2 ;;
+    esac
+done
 
 INSTALL_DIR="${GENIO_INSTALL_DIR:-/data/genio-os}"
 DRY_RUN="${GENIO_DRY_RUN:-0}"
@@ -123,10 +128,14 @@ if [ "${DRY_RUN}" = "1" ]; then
     mkdir -p "${INSTALL_DIR}"/{workspace,rag_docs,logs,memory/playbooks,memory/tools_}
 else
     if [ ! -d "${INSTALL_DIR}" ]; then
-        case "${INSTALL_DIR}" in
-            /data/*|/opt/*|/srv/*) ${SUDO} mkdir -p "${INSTALL_DIR}" && ${SUDO} chown -R "$(id -un):$(id -gn)" "${INSTALL_DIR}" ;;
-            *) die "${INSTALL_DIR} ما موجودش وما نقدروش نخلقوه بلا صلاحيات — استعمل GENIO_INSTALL_DIR" ;;
-        esac
+        if ! mkdir -p "${INSTALL_DIR}" 2>/dev/null; then
+            case "${INSTALL_DIR}" in
+                /data/*|/opt/*|/srv/*)
+                    ${SUDO} mkdir -p "${INSTALL_DIR}" && ${SUDO} chown -R "$(id -un):$(id -gn)" "${INSTALL_DIR}"
+                    ;;
+                *) die "ما قدرناش نخلقو ${INSTALL_DIR} — استعمل مسار تكتب فيه (GENIO_INSTALL_DIR)" ;;
+            esac
+        fi
     fi
     mkdir -p "${INSTALL_DIR}"/{workspace,rag_docs,logs,memory/playbooks,memory/tools_}
 fi
@@ -150,6 +159,35 @@ copy_path() {
     fi
 }
 
+# نصحّحو مسارات config.json باش تمشي مع مسار التثبيت (ماشي /data/genio-os دايمًا)
+rewrite_config() {
+    local cfg="$1"
+    if command -v python3 >/dev/null 2>&1; then
+        python3 - "${cfg}" "${INSTALL_DIR}" "${GENIO_PORT:-}" <<'PY'
+import json, sys
+
+path, install_dir, port = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(path, encoding="utf-8") as fh:
+    data = json.load(fh)
+data["workspace_dir"] = f"{install_dir}/workspace"
+data["rag_dir"] = f"{install_dir}/rag_docs"
+data["memory_dir"] = f"{install_dir}/memory"
+if port:
+    data["port"] = int(port)
+security = data.setdefault("security", {})
+security.setdefault("host", "127.0.0.1")
+security.setdefault("api_token", "")
+security.setdefault("enable_shell", False)
+security.setdefault("enable_update", False)
+with open(path, "w", encoding="utf-8") as fh:
+    json.dump(data, fh, indent=2, ensure_ascii=False)
+    fh.write("\n")
+PY
+    else
+        warn_msg "python3 ما موجودش — config.json تنسخ كيما هو"
+    fi
+}
+
 copy_path "core"
 copy_path "web"
 copy_path "requirements.txt"
@@ -164,7 +202,8 @@ copy_path "README.md"
 # config.json: ما نكتبوهش إذا موجود (إعدادات المستعمل ما تتحذفش)
 if [ -f "${SRC_DIR}/config.json" ] && [ ! -f "${INSTALL_DIR}/config.json" ]; then
     cp "${SRC_DIR}/config.json" "${INSTALL_DIR}/config.json"
-    ok_msg "config.json تنسخ من الريبو"
+    rewrite_config "${INSTALL_DIR}/config.json"
+    ok_msg "config.json تنسخ من الريبو (مسارات ${INSTALL_DIR})"
 elif [ -f "${INSTALL_DIR}/config.json" ]; then
     info_msg "config.json موجود — نخلّيوه كيما هو (الإعدادات متاعك)"
 fi
@@ -207,8 +246,26 @@ else
     PYTHON_BIN="$(command -v python3 || true)"
     [ -n "${PYTHON_BIN}" ] || die "python3 ما موجودش"
     if [ ! -x "${INSTALL_DIR}/venv/bin/python" ]; then
-        "${PYTHON_BIN}" -m venv "${INSTALL_DIR}/venv"
-        ok_msg "venv تخلق"
+        VENV_ERR="$(mktemp)"
+        if "${PYTHON_BIN}" -m venv "${INSTALL_DIR}/venv" 2>"${VENV_ERR}"; then
+            ok_msg "venv تخلق"
+        else
+            # Debian/Ubuntu بلا python3-venv: ensurepip ناقص، أما pip متاع النظام موجود
+            warn_msg "python3 -m venv فشل (ensurepip ناقص؟) — نجرّبو --without-pip + pip متاع النظام"
+            rm -rf "${INSTALL_DIR}/venv"
+            if "${PYTHON_BIN}" -m venv --without-pip "${INSTALL_DIR}/venv"; then
+                if "${PYTHON_BIN}" -m pip --python "${INSTALL_DIR}/venv/bin/python" install --quiet --upgrade pip; then
+                    ok_msg "venv تخلق (بلا ensurepip) وpip تثبّت من النظام"
+                else
+                    cat "${VENV_ERR}" >&2
+                    die "pip ما تثبّتش — ثبّت python3-venv ولا python3-pip"
+                fi
+            else
+                cat "${VENV_ERR}" >&2
+                die "ما قدرناش نعملو venv — ثبّت python3-venv (apt install python3.14-venv)"
+            fi
+        fi
+        rm -f "${VENV_ERR}"
     else
         info_msg "venv موجود"
     fi
@@ -220,15 +277,26 @@ fi
 # --- 4. الخدمة (systemd) -------------------------------------------------------
 step_header "[4/5] وحدة الخدمة"
 UNIT_SRC="${INSTALL_DIR}/deployment/genio-os.service"
+# المنفذ الفعلي: GENIO_PORT، وإلا اللي في config.json، وإلا 8099
+EFFECTIVE_PORT="${GENIO_PORT:-}"
+if [ -z "${EFFECTIVE_PORT}" ]; then
+    EFFECTIVE_PORT="$(grep -oE '"port"[[:space:]]*:[[:space:]]*[0-9]+' "${INSTALL_DIR}/config.json" 2>/dev/null | head -1 | grep -oE '[0-9]+' || true)"
+fi
+EFFECTIVE_PORT="${EFFECTIVE_PORT:-8099}"
+
 if [ -f "${UNIT_SRC}" ]; then
     UNIT_RENDERED="${INSTALL_DIR}/.${SERVICE_NAME}.rendered"
     sed -e "s#/opt/genio-os#${INSTALL_DIR}#g" \
         -e "s#/data/genio-os#${INSTALL_DIR}#g" \
         -e "s#^User=.*#User=$(id -un)#" \
         -e "s#^Group=.*#Group=$(id -gn)#" \
+        -e "s#--port [0-9]\+#--port ${EFFECTIVE_PORT}#" \
         "${UNIT_SRC}" > "${UNIT_RENDERED}"
     if [ "${DRY_RUN}" = "1" ]; then
         info_msg "DRY_RUN: الوحدة موجودة في ${UNIT_RENDERED}"
+    elif [ "${SKIP_SYSTEMD}" = "1" ]; then
+        warn_msg "--no-service: الوحدة ما تسجّلتش في systemd (موجودة في ${UNIT_RENDERED})"
+        info_msg "باش تسجّلها: systemctl copy من ${UNIT_RENDERED} لـ /etc/systemd/system/${SERVICE_NAME}"
     else
         ${SUDO} cp "${UNIT_RENDERED}" "/etc/systemd/system/${SERVICE_NAME}"
         ${SUDO} systemctl daemon-reload
@@ -247,6 +315,12 @@ step_header "[5/5] الفحص والتشغيل"
 if [ "${DRY_RUN}" = "1" ]; then
     ok_msg "DRY_RUN سالي — ${INSTALL_DIR} واجد للمعاينة"
     info_msg "الملفات المنسوخة: $(find "${INSTALL_DIR}/core" "${INSTALL_DIR}/web" -type f | wc -l) ملف"
+    exit 0
+fi
+
+if [ "${SKIP_SYSTEMD}" = "1" ]; then
+    info_msg "--no-service: ما نبداوش الخدمة. للتشغيل يدويًا:"
+    info_msg "${INSTALL_DIR}/venv/bin/python -m uvicorn web.server:app --host 127.0.0.1 --port ${EFFECTIVE_PORT} (من داخل ${INSTALL_DIR})"
     exit 0
 fi
 

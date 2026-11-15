@@ -1,6 +1,6 @@
 {
-  "version": "5.0.0-Singularity",
-  "enterprise_name": "Genio OS v5.0 — Self-Evolving Studio",
+  "version": "9.0.0",
+  "enterprise_name": "Genio OS — Local-first AI Studio",
   "node_name": "tn",
   "ollama_host": "http://pop-os:11434",
   "primary_model": "ornith-1.5:9b",

@@ -50,6 +50,28 @@ def test_installer_does_not_embed_the_old_engine():
     assert "Singularity" not in text
 
 
+def test_installer_has_a_fallback_for_missing_ensurepip():
+    """Debian بلا python3-venv: لازم fallback بلا ensurepip."""
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert "--without-pip" in text
+    assert "pip --python" in text
+    assert "python3-venv" in text
+
+
+def test_unknown_flag_is_rejected():
+    result = subprocess.run(
+        ["bash", str(SCRIPT), "--nope"], capture_output=True, text=True, timeout=30
+    )
+    assert result.returncode != 0
+    assert "خيار غير معروف" in (result.stdout + result.stderr)
+
+
+def test_no_service_flag_is_supported():
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert "--no-service" in text
+    assert "GENIO_SKIP_SYSTEMD" in text
+
+
 def test_dry_run_copies_repo_code_verbatim(tmp_path):
     result = _run_dry(tmp_path / "inst")
     assert result.returncode == 0, result.stdout + result.stderr
@@ -71,11 +93,16 @@ def test_dry_run_writes_safe_config(tmp_path):
     result = _run_dry(tmp_path / "inst")
     assert result.returncode == 0, result.stdout + result.stderr
 
-    config = json.loads((tmp_path / "inst" / "config.json").read_text(encoding="utf-8"))
+    inst = tmp_path / "inst"
+    config = json.loads((inst / "config.json").read_text(encoding="utf-8"))
     assert config["security"]["host"] == "127.0.0.1"
     assert config["security"]["enable_shell"] is False
     assert config["security"]["enable_update"] is False
-    assert isinstance(config["port"], int)
+    assert config["port"] == 8123
+    # المسارات تتبع INSTALL_DIR ماشي /data/genio-os
+    assert config["workspace_dir"] == str(inst / "workspace")
+    assert config["rag_dir"] == str(inst / "rag_docs")
+    assert config["memory_dir"] == str(inst / "memory")
 
 
 def test_dry_run_keeps_existing_config(tmp_path):
@@ -101,6 +128,9 @@ def test_dry_run_renders_the_service_unit(tmp_path):
     text = unit.read_text(encoding="utf-8")
     assert str(tmp_path / "inst") in text
     assert "/opt/genio-os" not in text
+    # المنفذ يتبع GENIO_PORT (8123 هنا) ماشي 8099 متاع الـ template
+    assert "--port 8123" in text
+    assert "--port 8099" not in text
 
 
 def test_installer_fails_without_a_repo(tmp_path):
