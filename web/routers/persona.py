@@ -111,6 +111,27 @@ def submit_onboarding(payload: OnboardingRequest, request: Request):
     return {"ok": True, "profile": profile, "persona": personas.resolve(profile)}
 
 
+@router.get("/experience")
+def experience(request: Request):
+    """Contract for the UI: which mode, tools, models and safety apply now."""
+    user = _require_user(request)
+    with get_db() as conn:
+        profile = _profile_payload(auth_core.default_profile(conn, user["id"]))
+    persona = personas.resolve(profile)
+    return {
+        "ok": True,
+        "mode": persona["mode"],
+        "mode_label": personas.MODE_LABELS.get(persona["mode"], persona["mode"]),
+        "persona_pack": persona["pack"],
+        "persona_label": persona["label"],
+        "tools": persona["tools"],
+        "allowed_tools": profile.get("tools") or [],
+        "models": persona["models"],
+        "safety": persona["safety"],
+        "modes": [{"id": m, "label": personas.MODE_LABELS[m]} for m in personas.MODES],
+    }
+
+
 @router.get("/me/persona")
 def my_persona(request: Request):
     user = _require_user(request)
