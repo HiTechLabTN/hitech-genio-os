@@ -25,6 +25,7 @@ from web.routers import persona as persona_api
 from web.routers import i18n as i18n_api
 from web.routers import orgs as orgs_api
 from web.routers import rag as rag_api
+from web.routers import skillpacks as skillpacks_api
 from web.routers import studio as studio_api
 from web.routers import tools as tools_api
 
@@ -45,6 +46,8 @@ app.include_router(i18n_api.router)
 app.include_router(orgs_api.router)
 # Sprint 1 (v2): Vibe Studio
 app.include_router(studio_api.router)
+# Sprint 2 (v2): skill packs + eval gate
+app.include_router(skillpacks_api.router)
 
 
 @app.exception_handler(StarletteHTTPException)

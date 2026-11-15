@@ -150,6 +150,26 @@ def test_deploy_plan_per_target(server):
     assert refused.status_code == 400
 
 
+def test_mobile_build_plan(server):
+    client = _owner(server)
+    flutter_project = _project(client, template="flutter", name="flutter-app").json()["project"]
+    plan = client.post(
+        f"/api/projects/{flutter_project['id']}/deploy-plan",
+        json={"target": "mobile"},
+        headers={"X-Genio-CSRF": client.csrf},
+    ).json()
+    assert plan["target"] == "mobile"
+    assert any("flutter build apk" in step for step in plan["steps"])
+
+    web_project = _project(client, template="landing", name="site").json()["project"]
+    refused = client.post(
+        f"/api/projects/{web_project['id']}/deploy-plan",
+        json={"target": "mobile"},
+        headers={"X-Genio-CSRF": client.csrf},
+    )
+    assert refused.status_code == 400
+
+
 def test_mobile_template_is_flagged(server):
     client = _owner(server)
     project = _project(client, template="expo", name="mobile").json()["project"]

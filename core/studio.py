@@ -390,6 +390,16 @@ def deploy_plan(project: Dict[str, Any], target: str) -> Dict[str, Any]:
             ],
             "notes": "لازم Dockerfile في الجذر قبل الـ build.",
         }
+    if target in ("mobile", "apk"):
+        if template == "flutter":
+            steps = ["flutter pub get", "flutter build apk --release"]
+            notes = "يحتاج Flutter SDK + Android toolchain على نفس الجهاز."
+        elif template == "expo":
+            steps = ["npm install", "npx expo export --platform android"]
+            notes = "Expo export ينجّم يمشي بلا Android SDK؛ الـ APK يحتاج EAS build."
+        else:
+            raise StudioError("الهدف mobile يخصّ قوالب Flutter/Expo فقط")
+        return {"target": "mobile", "steps": steps, "notes": notes}
     if target == "vps":
         return {
             "target": "vps",

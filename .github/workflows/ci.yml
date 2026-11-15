@@ -18,8 +18,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
       - name: Compile Python sources
-        run: python -m py_compile core/engine.py core/security.py core/tui.py web/server.py
+        run: python -m compileall -q core web tests
       - name: Check shell scripts
         run: bash -n scripts/backup.sh install_genio_os.sh update_genio.sh
+      - name: Check locale catalogue
+        run: python -c "from core import i18n; r = i18n.key_report(); assert r['ok'], r['missing']; print(r['keys'], 'keys OK')"
       - name: Run tests
         run: pytest -q

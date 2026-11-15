@@ -1,0 +1,24 @@
+[Unit]
+Description=Genio OS — local-first AI studio
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=genio
+Group=genio
+WorkingDirectory=/opt/genio-os
+Environment=GENIO_DATA_DIR=/data/genio-os
+# التوكن من ملف محمي (chmod 600)، ماشي من سطر الأوامر
+EnvironmentFile=-/etc/genio-os/genio.env
+ExecStart=/opt/genio-os/venv/bin/python -m uvicorn web.server:app --host 127.0.0.1 --port 8099
+Restart=on-failure
+RestartSec=5
+# تقوية بسيطة: المنصّة ما تحتاجش كتابة في /opt
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/data/genio-os
+
+[Install]
+WantedBy=multi-user.target

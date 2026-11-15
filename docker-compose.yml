@@ -1,0 +1,27 @@
+services:
+  genio:
+    build: .
+    image: genio-os:8-stable
+    container_name: genio-os
+    restart: unless-stopped
+    ports:
+      # البورت مربوط على الـ loopback متاع المضيف فقط (المرحلة 0)
+      - "127.0.0.1:8099:8099"
+    environment:
+      GENIO_HOST: "0.0.0.0"
+      GENIO_DATA_DIR: "/data/genio-os"
+      # حطّ التوكن في ملف .env (ما تكتبوش هنا) باش المنصّة تبقى محمية
+      GENIO_API_TOKEN: "${GENIO_API_TOKEN:?set GENIO_API_TOKEN in .env}"
+      GENIO_ENABLE_SHELL: "${GENIO_ENABLE_SHELL:-0}"
+      GENIO_ENABLE_UPDATE: "${GENIO_ENABLE_UPDATE:-0}"
+    volumes:
+      - genio-data:/data/genio-os
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8099/api/status').status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  genio-data:

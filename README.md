@@ -1,14 +1,101 @@
-# ⚡ Genio OS v4.0 Ultimate (`hitech-genio-os`)
-**Autonomous Local AI Enterprise Studio** — مصممة في **HiTech Lab TN** لتجمع قوة `Open WebUI` + `OpenCode / Cursor` + `CrewAI / OpenBot` في منصة محلية واحدة بدون أي قيود (100% Local Authority).
+# ⚡ Genio OS — منصّة AI محلية (HiTech Lab TN)
 
-## 🌟 الميزات الخارقة في الإصدار v4.0 Ultimate
-1. **غرفة عمليات وسرب وكلاء (Multi-Agent Swarm):** تنفيذ متسلسل وتعاوني (`Genio-Rayes` ➔ `Dev-Lead` ➔ `QA-Sec`) يكتب الكود الفعلي مباشرة في `/data/genio-os/workspace`.
-2. **استوديو كود حي مدمج (Live Web IDE):** تصفح، تحرير، حفظ، وتشغيل ملفات البايثون والمشاريع مباشرة من المتصفح أو الهاتف.
-3. **طرفية ويب تفاعلية (Integrated Web Terminal):** تنفيذ أوامر اللينكس والـ Git وفحص العتاد مباشرة من الواجهة.
-4. **قاعدة معرفة محلية (RAG Knowledge Studio):** رفع الوثائق والمراجع التقنية ليدمجها الوكلاء تلقائياً في سياق البرمجة.
-5. **لوحة إدارة النماذج والتحديث الذكي (Admin & Model Manager):** التحكم في `Temperature`، `Context Window`، سحب نماذج جديدة على `Legion`، وتحديث المنصة بضغطة زر.
+منصّة **local-first**: البيانات والكود والذاكرة يبقاو في جهازك، بلا اشتراكات وبلا سحابة إجبارية.
+العربي/الدارجة أوّلًا، **RTL** مضبوط، وخدمة offline مع **Ollama** محلي.
 
-## 🚀 التثبيت أو التحديث السريع بأمر واحد (1-Command Smart Installer)
+---
+
+## 🚀 التشغيل السريع
+
 ```bash
-git clone https://github.com/HiTechLabTN/hitech-genio-os.git /tmp/genio-installer && bash /tmp/genio-installer/install_genio_os.sh
+git clone https://github.com/HiTechLabTN/hitech-genio-os.git
+cd hitech-genio-os
+make install      # venv + المتطلّبات
+make test         # 89 اختبار
+make run          # http://127.0.0.1:8099
 ```
+
+أو بالـ Docker:
+
+```bash
+echo "GENIO_API_TOKEN=$(openssl rand -hex 24)" > .env
+docker compose up -d
+```
+
+---
+
+## 🔐 الأمان — الافتراضي مقفول
+
+| الحاجة | الافتراضي | كيفاش تبدّلها |
+|---|---|---|
+| الربط (bind) | `127.0.0.1` فقط | `security.host` ولا `GENIO_HOST` |
+| `/api/*` | للمحلي فقط | حطّ `security.api_token` ولا `GENIO_API_TOKEN` |
+| `/api/shell` | **مقفول** | `security.enable_shell` ولا `GENIO_ENABLE_SHELL=1` |
+| `/api/update/apply` | **مقفول** | `security.enable_update` |
+| أوّل حساب | `POST /api/auth/bootstrap` (owner) | بعدو كل `/api` تحتاج جلسة + CSRF |
+
+التوكن يتزاد تلقائيًا في كل طلب `/api` إذا كان في `localStorage.genio_token`
+(تنجّم تدخل بـ `?token=...` مرّة وحدة والواجهة تحفظو).
+
+---
+
+## 🧩 شنوّة موجود
+
+- **حسابات وأدوار** (`owner/admin/member/viewer`) + **workspace معزول** لكل مستعمل.
+- **Onboarding 7 أسئلة** → persona pack + mode + أدوات + model policy + safety.
+- **3 أوضاع**: محادثة / تطوير / مؤسسة.
+- **Tool Registry**: schema + permission (`safe/confirm/dangerous`) + **sandbox** + **audit**.
+- **موافقات**: الأوامر الخطرة ما تتنفّذش بلا ما توافق (202 → decide).
+- **Model Router**: chat/code/vision/embeddings + fallback واضح إذا الموديل ما موجودش.
+- **RAG محلي** بـ citations و**تراخيص** مسجّلة لكل مصدر.
+- **Vibe Studio**: 6 قوالب (`landing`, `react-vite`, `fastapi`, `next`, `flutter`, `expo`)،
+  mission بـ DAG (PM → Architect → Coder → QA)، preview، ZIP، وdeploy plans.
+- **Skill packs** بـ **eval gate**: ما يتفعّلش pack إلا إذا عدّى الـ evals.
+- **مؤسسات**: أعضاء، أدوار، تقرير استعمال، **CSV audit**.
+- **i18n/RTL**: `ar-TN`, `ar`, `fr`, `en` — الاتجاه data ماشي guess.
+
+---
+
+## 🗺️ الـ API (مختصر)
+
+```
+POST /api/auth/bootstrap | /api/auth/login | /api/auth/logout
+GET  /api/me            | PATCH /api/me/profile
+GET  /api/personas      | POST /api/onboarding/submit | POST /api/mode
+GET  /api/experience    | GET  /api/router/plan
+GET  /api/tools         | POST /api/tools/{name}/invoke
+GET  /api/approvals     | POST /api/approvals/{id}/decide
+GET  /api/audit         | GET  /api/admin/audit/export
+POST /api/rag/ingest    | POST /api/rag/search | GET /api/rag/sources
+GET  /api/i18n/{locale}
+GET  /api/orgs          | POST /api/orgs | GET /api/orgs/{id}/report
+GET  /api/projects      | POST /api/projects | POST /api/projects/{id}/mission
+GET  /api/projects/{id}/preview | /export | POST /deploy-plan
+GET  /api/skillpacks    | POST /api/skillpacks/{name}/eval | /enable
+```
+
+---
+
+## 🛠️ الصيانة
+
+```bash
+make test      # pytest
+make compile   # compileall
+make backup    # tar للذاكرة + workspace + config في backups/ (آخر 7)
+```
+
+- **قاعدة البيانات**: `memory/genio.db` (SQLite، برا git).
+- **اللوجز**: `logs/`، **الذاكرة**: `memory/`، **المشاريع**: `workspace/users/<slug>/projects/`.
+- **systemd**: `deployment/genio-os.service` — **Docker**: `docker-compose.yml`.
+
+---
+
+## 📚 الوثائق
+
+| الملف | شنوّة فيه |
+|---|---|
+| `docs/PLAN_MISE_A_NIVEAU.md` | خطة v1 — الوحدات والمراحل التقنية |
+| `docs/PLAN_v2_AI_COMPANY.md` | خطة v2 — المنتج والـ Sprints |
+| `docs/SECURITY_AUDIT_2026-11-13.md` | التدقيق الأمني |
+| `docs/RAPPORT_2026-11-15.md` | تقرير حالة الريبو |
+| `docs/PHASES_2026-11-15.md` | شنوّة تنفّذ من الخطّتين + كيفاش تتحقّق |
