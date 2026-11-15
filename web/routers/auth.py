@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api", tags=["auth"])
 
 # Reachable without a session (login itself, the one-time bootstrap, and the
 # UI catalogue the login screen needs before anyone is signed in).
-PUBLIC_PATHS = {"/api/auth/login", "/api/auth/bootstrap"}
+PUBLIC_PATHS = {"/api/auth/login", "/api/auth/bootstrap", "/api/auth/status"}
 PUBLIC_PREFIXES = ("/api/i18n",)
 MUTATING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
@@ -116,6 +116,24 @@ def _session_payload(user: Dict[str, Any], session: Dict[str, Any], request: Req
 # ---------------------------------------------------------------------------
 # Session lifecycle
 # ---------------------------------------------------------------------------
+@router.get("/auth/status")
+def auth_status(request: Request):
+    """بوّابة الواجهة: واش فمّا حسابات؟ وواش أنا داخل؟ (متاح بلا جلسة)"""
+    user = current_user(request)
+    with get_db() as conn:
+        bootstrapped = auth_core.user_count(conn) > 0
+        profile = auth_core.default_profile(conn, user["id"]) if user else None
+    return {
+        "ok": True,
+        "bootstrapped": bootstrapped,
+        "authenticated": user is not None,
+        "user": user,
+        "role_label": auth_core.ROLE_LABELS.get(user["role"], "") if user else "",
+        "profile": profile,
+        "onboarding_done": int((profile or {}).get("onboarding_done") or 0),
+    }
+
+
 @router.post("/auth/bootstrap")
 def bootstrap(payload: BootstrapRequest, request: Request, response: Response):
     with get_db() as conn:

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#020617">
+<link rel="stylesheet" href="/static/genio-app.css">
 <script>
 /* المرحلة 0 — دعم التوكن: /api يتطلّب X-Genio-Token إذا security.api_token معرّف */
 (function () {
@@ -165,6 +166,90 @@
 </head>
 <body>
 
+<!-- ===================== v9: login / onboarding / Vibe Studio ===================== -->
+<div id="gioAuth" class="gio-overlay" hidden>
+  <div class="gio-card">
+    <div class="gio-logo">⚡ GENIO OS — LOCAL AI STUDIO</div>
+    <h2 id="gioAuthTitle">ادخل للمنصّة</h2>
+    <p id="gioAuthHint" class="gio-muted"></p>
+    <form id="gioAuthForm">
+      <label>الإيميل<input id="gioEmail" class="gio-input" type="email" required dir="ltr" autocomplete="username"></label>
+      <label id="gioNameRow" hidden>الاسم<input id="gioName" class="gio-input" autocomplete="name"></label>
+      <label>كلمة السر<input id="gioPassword" class="gio-input" type="password" required minlength="8" dir="ltr" autocomplete="current-password"></label>
+      <p id="gioAuthError" class="gio-error" hidden></p>
+      <div class="gio-actions end">
+        <button id="gioAuthSubmit" class="gio-btn primary" type="submit">ادخل</button>
+      </div>
+    </form>
+    <p id="gioAuthFoot" class="gio-muted gio-small"></p>
+  </div>
+</div>
+
+<div id="gioOnboarding" class="gio-overlay" hidden>
+  <div class="gio-card wide">
+    <div class="gio-progress"><span id="gioProgressBar"></span></div>
+    <p class="gio-muted gio-small"><span id="gioObCounter"></span> — «يلا نعرفوك»</p>
+    <h2 id="gioObTitle"></h2>
+    <p id="gioObHint" class="gio-muted"></p>
+    <div id="gioObBody"></div>
+    <div class="gio-actions">
+      <button id="gioObBack" class="gio-btn ghost" type="button">اللي قبل</button>
+      <button id="gioObNext" class="gio-btn primary" type="button">التالي</button>
+      <button id="gioObSkip" class="gio-btn ghost" type="button">تعدّى</button>
+    </div>
+  </div>
+</div>
+
+<section id="gioStudio" class="gio-fullview" hidden>
+  <div class="gio-studio-head">
+    <h2>🚀 Vibe Studio — من فكرة لتطبيق</h2>
+    <div class="gio-actions" style="margin:0">
+      <button id="gioPanelRefresh" class="gio-btn ghost" type="button">↻ تحديث</button>
+      <button id="gioStudioClose" class="gio-btn ghost" type="button">رجوع للمنصّة</button>
+      <button id="gioStudioLogout" class="gio-btn ghost" type="button">خروج</button>
+    </div>
+  </div>
+  <div class="gio-studio-grid">
+    <aside class="gio-panel">
+      <button id="gioNewProject" class="gio-btn primary" type="button">+ مشروع جديد</button>
+      <div id="gioProjectList" class="gio-list"></div>
+    </aside>
+    <main class="gio-panel">
+      <p id="gioProjectEmpty" class="gio-muted">اختار مشروع ولا اعمل واحد جديد.</p>
+      <div id="gioProjectDetail" hidden>
+        <h3 id="gioProjectName"></h3>
+        <p id="gioProjectMeta" class="gio-muted gio-small"></p>
+        <div class="gio-actions">
+          <button id="gioRunMission" class="gio-btn primary" type="button">▶ شغّل المهمة (PM → QA)</button>
+          <button id="gioRefreshFiles" class="gio-btn ghost" type="button">↻ الملفات</button>
+          <a id="gioExport" class="gio-btn ghost" href="#">⬇ ZIP</a>
+        </div>
+        <div class="gio-studio-body">
+          <div id="gioFileList" class="gio-files"></div>
+          <iframe id="gioPreview" class="gio-preview" title="preview"></iframe>
+        </div>
+        <pre id="gioMissionLog" class="gio-log" hidden></pre>
+      </div>
+    </main>
+  </div>
+
+  <div id="gioNewProjectForm" class="gio-modal" hidden>
+    <div class="gio-card">
+      <h2>مشروع جديد</h2>
+      <p class="gio-muted gio-small">اكتب الفكرة بالدارجة، اختار القالب، وبدا.</p>
+      <form id="gioNewProjectForm2">
+        <label>الاسم<input id="gioNewName" class="gio-input" placeholder="متجر صغير"></label>
+        <label>القالب<select id="gioTemplate" class="gio-select"></select></label>
+        <label>الفكرة<textarea id="gioNewIdea" class="gio-textarea" placeholder="نحب تطبيق متجر إلكتروني صغير، فيه منتجات وسلّة ودفع عند الاستلام"></textarea></label>
+        <div class="gio-actions end">
+          <button id="gioNewCancel" class="gio-btn ghost" type="button">ألغي</button>
+          <button id="gioCreateSubmit" class="gio-btn primary" type="submit">اعمل المشروع</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
 <header>
   <div class="brand">
     <span>🏛️ GENIO OS v8.0 — CYBER VOXEL HQ</span>
@@ -175,6 +260,8 @@
     <div class="pill">💾 /data: <span id="diskLabel">--</span></div>
     <div class="pill">🤖 Model: <span id="modelLabel">--</span></div>
     <div class="pill">📘 XP Rules: <span id="pbLabel">0</span></div>
+    <div class="pill" id="gioUserChip" hidden></div>
+    <button id="gioOpenStudio" class="gio-btn primary" type="button" style="padding:7px 14px">🚀 Vibe Studio</button>
   </div>
 </header>
 
@@ -1179,5 +1266,6 @@ window.addEventListener("DOMContentLoaded", () => {
   refreshAll();
 });
 </script>
+<script src="/static/genio-app.js"></script>
 </body>
 </html>

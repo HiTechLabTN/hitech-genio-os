@@ -1,0 +1,182 @@
+/* Genio OS — écrans v9 (auth, onboarding, Vibe Studio)
+   يستعمل نفس متغيرات الألوان متاع index.html (:root) */
+
+[hidden] { display: none !important; }
+
+.gio-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: radial-gradient(circle at 50% 0%, rgba(0, 242, 254, .14), transparent 55%), #020617;
+  backdrop-filter: blur(6px);
+  overflow: auto;
+}
+
+.gio-card {
+  width: 100%; max-width: 420px;
+  background: rgba(10, 16, 32, .96);
+  border: 1px solid var(--border, rgba(0, 242, 254, .32));
+  border-radius: 18px;
+  padding: 26px 24px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55);
+  color: var(--text, #f8fafc);
+}
+.gio-card.wide { max-width: 620px; }
+
+.gio-logo {
+  font-weight: 800; letter-spacing: .5px; color: var(--cyan, #00f2fe);
+  margin-bottom: 12px; font-size: .95rem;
+}
+.gio-card h2 { font-size: 1.35rem; margin-bottom: 6px; line-height: 1.4; }
+.gio-muted { color: var(--muted, #94a3b8); font-size: .92rem; line-height: 1.6; }
+.gio-small { font-size: .82rem; }
+.gio-error { color: #fca5a5; font-size: .9rem; margin: 8px 0; }
+
+.gio-card label { display: block; margin: 14px 0 0; font-size: .9rem; color: var(--muted, #94a3b8); }
+
+.gio-input, .gio-select, .gio-textarea {
+  width: 100%; margin-top: 6px;
+  background: rgba(2, 6, 23, .9);
+  color: var(--text, #f8fafc);
+  border: 1px solid rgba(148, 163, 184, .35);
+  border-radius: 10px;
+  padding: 11px 12px;
+  font-size: .95rem;
+  font-family: inherit;
+}
+.gio-input:focus, .gio-select:focus, .gio-textarea:focus {
+  outline: none; border-color: var(--cyan, #00f2fe);
+  box-shadow: 0 0 0 3px rgba(0, 242, 254, .15);
+}
+.gio-textarea { min-height: 90px; resize: vertical; }
+
+.gio-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 10px; padding: 11px 18px;
+  font-size: .92rem; font-family: inherit; font-weight: 600;
+  cursor: pointer; border: 1px solid rgba(148, 163, 184, .35);
+  background: rgba(30, 41, 59, .8); color: var(--text, #f8fafc);
+  transition: transform .08s ease, background .2s ease, border-color .2s ease;
+  text-decoration: none;
+}
+.gio-btn:hover { transform: translateY(-1px); border-color: var(--cyan, #00f2fe); }
+.gio-btn.primary {
+  background: linear-gradient(135deg, #0891b2, #2563eb);
+  border-color: transparent; color: #fff;
+}
+.gio-btn.ghost { background: transparent; }
+.gio-btn[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
+
+.gio-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.gio-actions.end { justify-content: flex-end; }
+
+/* --- onboarding --- */
+.gio-progress {
+  height: 6px; border-radius: 999px; background: rgba(148, 163, 184, .2);
+  overflow: hidden; margin-bottom: 18px;
+}
+.gio-progress > span {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, #00f2fe, #3b82f6);
+  transition: width .25s ease;
+}
+.gio-choices { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.gio-choice {
+  border: 1px solid rgba(148, 163, 184, .35);
+  background: rgba(30, 41, 59, .5);
+  color: var(--text, #f8fafc);
+  border-radius: 999px; padding: 10px 16px;
+  cursor: pointer; font-family: inherit; font-size: .9rem;
+}
+.gio-choice.selected {
+  border-color: var(--cyan, #00f2fe);
+  background: rgba(0, 242, 254, .16);
+  box-shadow: 0 0 0 2px rgba(0, 242, 254, .18) inset;
+}
+
+/* --- Vibe Studio --- */
+.gio-fullview {
+  position: fixed; inset: 0; z-index: 8000;
+  background: #020617;
+  color: var(--text, #f8fafc);
+  padding: 18px clamp(12px, 3vw, 34px) 28px;
+  overflow: auto;
+}
+.gio-studio-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.gio-studio-head h2 { font-size: 1.3rem; }
+.gio-studio-grid {
+  display: grid; grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: 18px; align-items: start;
+}
+@media (max-width: 900px) { .gio-studio-grid { grid-template-columns: 1fr; } }
+
+.gio-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.gio-list-item {
+  text-align: right; width: 100%;
+  border: 1px solid rgba(148, 163, 184, .25);
+  background: rgba(15, 23, 42, .8);
+  color: var(--text, #f8fafc);
+  border-radius: 12px; padding: 12px 14px; cursor: pointer;
+  font-family: inherit;
+}
+.gio-list-item.active { border-color: var(--cyan, #00f2fe); background: rgba(0, 242, 254, .1); }
+.gio-list-item small { display: block; color: var(--muted, #94a3b8); margin-top: 4px; font-size: .78rem; }
+
+.gio-panel {
+  border: 1px solid rgba(148, 163, 184, .25);
+  background: rgba(15, 23, 42, .65);
+  border-radius: 14px; padding: 18px;
+}
+.gio-studio-body { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 14px; margin-top: 16px; }
+@media (max-width: 900px) { .gio-studio-body { grid-template-columns: 1fr; } }
+
+.gio-files { max-height: 420px; overflow: auto; font-size: .85rem; }
+.gio-file {
+  display: block; width: 100%; text-align: right;
+  background: none; border: 0; color: var(--muted, #94a3b8);
+  padding: 6px 8px; border-radius: 8px; cursor: pointer;
+  font-family: ui-monospace, monospace; direction: ltr;
+}
+.gio-file:hover, .gio-file.active { background: rgba(0, 242, 254, .12); color: var(--cyan, #00f2fe); }
+
+.gio-preview {
+  width: 100%; height: 460px; border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, .3); background: #fff;
+}
+
+.gio-log {
+  margin-top: 14px; padding: 14px; border-radius: 12px;
+  background: rgba(2, 6, 23, .9); border: 1px solid rgba(148, 163, 184, .2);
+  font-family: ui-monospace, monospace; font-size: .82rem;
+  white-space: pre-wrap; max-height: 260px; overflow: auto; direction: ltr; text-align: left;
+}
+
+.gio-modal {
+  position: fixed; inset: 0; z-index: 8500;
+  display: flex; align-items: center; justify-content: center; padding: 18px;
+  background: rgba(2, 6, 23, .82);
+}
+
+/* --- user chip in header --- */
+.gio-user-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid rgba(0, 242, 254, .35);
+  background: rgba(0, 242, 254, .08);
+  border-radius: 999px; padding: 6px 12px;
+  font-size: .82rem; color: var(--text, #f8fafc);
+}
+.gio-user-chip button {
+  background: none; border: 0; color: var(--muted, #94a3b8);
+  cursor: pointer; font-size: .8rem; font-family: inherit;
+}
+.gio-user-chip button:hover { color: #fca5a5; }
+
+.gio-toast {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  z-index: 9500; background: rgba(15, 23, 42, .97);
+  border: 1px solid var(--cyan, #00f2fe); border-radius: 12px;
+  padding: 12px 18px; font-size: .9rem; max-width: 90vw;
+}

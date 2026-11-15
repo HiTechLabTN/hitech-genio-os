@@ -177,6 +177,41 @@ def test_only_owner_changes_roles(server):
     assert promoted.json()["user"]["role"] == "admin"
 
 
+def test_status_gate_drives_the_ui(server):
+    anonymous = _client(server)
+    fresh = anonymous.get("/api/auth/status").json()
+    assert fresh["bootstrapped"] is False
+    assert fresh["authenticated"] is False
+    assert fresh["onboarding_done"] == 0
+
+    owner = _client(server)
+    _bootstrap(owner)
+
+    inside = owner.get("/api/auth/status").json()
+    assert inside["bootstrapped"] is True
+    assert inside["authenticated"] is True
+    assert inside["user"]["role"] == "owner"
+    assert inside["onboarding_done"] == 0
+
+    outside = _client(server).get("/api/auth/status").json()
+    assert outside["bootstrapped"] is True
+    assert outside["authenticated"] is False
+    assert outside["user"] is None
+
+
+def test_ui_assets_are_served(server):
+    client = _client(server)
+    assert client.get("/static/genio-app.js").status_code == 200
+    assert client.get("/static/genio-app.css").status_code == 200
+
+    html = client.get("/").text
+    assert "/static/genio-app.js" in html
+    assert "/static/genio-app.css" in html
+    assert 'id="gioAuth"' in html
+    assert 'id="gioStudio"' in html
+    assert 'id="gioOnboarding"' in html
+
+
 def test_profile_can_be_updated(server):
     client = _client(server)
     client.csrf = _bootstrap(client).json()["csrf"]

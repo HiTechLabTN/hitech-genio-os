@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 from typing import Optional
@@ -31,6 +32,13 @@ from web.routers import tools as tools_api
 
 app = FastAPI(title="Genio OS v5.0 Singularity — Self-Evolving AI Studio")
 engine = GenioEngine()
+
+# أصول الواجهة (CSS/JS) — بلا أسرار، ماشي تحت /api
+app.mount(
+    "/static",
+    StaticFiles(directory=str(Path(__file__).resolve().parent / "static")),
+    name="static",
+)
 
 # المرحلة 1: auth / me / profile / admin
 app.include_router(auth_api.router)
