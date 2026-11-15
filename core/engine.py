@@ -6,6 +6,7 @@ import time
 import hashlib
 import psutil
 import subprocess
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Dict, Any, List, Optional, AsyncGenerator
 import httpx
@@ -16,6 +17,21 @@ HISTORY_PATH = BASE_DIR / "logs" / "tasks_history.json"
 EXPERIENCE_LEDGER = BASE_DIR / "memory" / "experience_ledger.jsonl"
 ERROR_RESOLUTIONS = BASE_DIR / "memory" / "error_resolutions.json"
 PLAYBOOKS_PATH = BASE_DIR / "memory" / "playbooks.json"
+
+# Per-account workspace isolation (Phase 1). The engine keeps one base workspace
+# and a request-scoped override, so every existing tool path keeps working.
+_WORKSPACE_OVERRIDE: ContextVar[Optional[Path]] = ContextVar(
+    "genio_workspace_override", default=None
+)
+
+
+def workspace_override(path) -> object:
+    """Point the engine at a per-user workspace; returns a reset token."""
+    return _WORKSPACE_OVERRIDE.set(Path(path))
+
+
+def reset_workspace(token) -> None:
+    _WORKSPACE_OVERRIDE.reset(token)
 
 AGENTS_REGISTRY = {
     "HR-Director": {
@@ -85,6 +101,20 @@ AGENTS_REGISTRY = {
 
 
 class GenioEngine:
+    @property
+    def workspace(self) -> Path:
+        override = _WORKSPACE_OVERRIDE.get()
+        return Path(override) if override is not None else self._workspace
+
+    @workspace.setter
+    def workspace(self, value) -> None:
+        self._workspace = Path(value)
+
+    @property
+    def base_workspace(self) -> Path:
+        """Shared root that holds every account's folder."""
+        return self._workspace
+
     def __init__(self):
         self.reload_config()
         HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)

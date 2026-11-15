@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -10,10 +11,28 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from core import security
-from core.engine import GenioEngine, AGENTS_REGISTRY, HISTORY_PATH, BASE_DIR
+from core import auth as auth_core
+from core.engine import (
+    GenioEngine,
+    AGENTS_REGISTRY,
+    HISTORY_PATH,
+    BASE_DIR,
+    reset_workspace,
+    workspace_override,
+)
+from web.routers import auth as auth_api
 
 app = FastAPI(title="Genio OS v5.0 Singularity — Self-Evolving AI Studio")
 engine = GenioEngine()
+
+# المرحلة 1: auth / me / profile / admin
+app.include_router(auth_api.router)
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_error_handler(request: Request, exc: StarletteHTTPException):
+    """عقد واحد للأخطاء: {"ok": false, "error": ...} — الواجهة تعتمد عليه."""
+    return JSONResponse({"ok": False, "error": str(exc.detail)}, status_code=exc.status_code)
 
 
 def _feature_gate(enabled: bool, feature: str, setting: str, env_var: str):
@@ -31,15 +50,28 @@ def _feature_gate(enabled: bool, feature: str, setting: str, env_var: str):
 
 @app.middleware("http")
 async def api_security_guard(request: Request, call_next):
-    """المرحلة 0: /api/* للمحلي فقط، إلا إذا token معرّف في الإعدادات."""
-    if request.url.path.startswith("/api"):
-        try:
-            security.check_api_access(request, engine)
-        except HTTPException as exc:
-            return JSONResponse(
-                {"ok": False, "error": exc.detail}, status_code=exc.status_code
-            )
-    return await call_next(request)
+    """المرحلة 0 + 1: [محلي/token] ثم [جلسة + CSRF] ثم [workspace معزول]."""
+    if not request.url.path.startswith("/api"):
+        return await call_next(request)
+    try:
+        security.check_api_access(request, engine)
+        user = auth_api.current_user(request)
+        auth_api.enforce(request, user)
+    except HTTPException as exc:
+        return JSONResponse(
+            {"ok": False, "error": exc.detail}, status_code=exc.status_code
+        )
+
+    token = None
+    if user:
+        workspace = auth_core.user_workspace(engine.base_workspace, user)
+        workspace.mkdir(parents=True, exist_ok=True)
+        token = workspace_override(workspace)
+    try:
+        return await call_next(request)
+    finally:
+        if token is not None:
+            reset_workspace(token)
 
 
 class TaskRequest(BaseModel):

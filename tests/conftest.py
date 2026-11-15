@@ -17,6 +17,12 @@ for _var in ("GENIO_API_TOKEN", "GENIO_HOST", "GENIO_ENABLE_SHELL", "GENIO_ENABL
     os.environ.pop(_var, None)
 
 
+@pytest.fixture(autouse=True)
+def isolated_data_dir(tmp_path, monkeypatch):
+    """كل اختبار عندو قاعدة SQLite جديدة: صفر حسابات، بلا حالة مشتركة."""
+    monkeypatch.setenv("GENIO_DATA_DIR", str(tmp_path / "data"))
+
+
 @pytest.fixture(scope="session")
 def server():
     """Importe l'application FastAPI réelle (engine + routes)."""
