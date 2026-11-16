@@ -1,0 +1,9 @@
+# Canonical identity — every commit in this repository belongs to one person.
+# Format: Canonical Name <canonical@email> Commit Name <commit@email>
+#
+# git log / shortlog / blame honour this file. GitHub does NOT apply .mailmap
+# to the contributors graph: there the link comes from the commit email being
+# verified on the account, and the displayed name is whatever the commit says.
+@ZMi HiTech <azmi.hitech@gmail.com> Azmi (HiTech Lab) <azmi.hitech@gmail.com>
+@ZMi HiTech <azmi.hitech@gmail.com> Mohamed Azmi KAANICHE <azmi.hitech@gmail.com>
+@ZMi HiTech <azmi.hitech@gmail.com>
