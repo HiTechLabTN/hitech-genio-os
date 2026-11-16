@@ -89,7 +89,7 @@
   }
 
   function renderLocaleSwitcher() {
-    const hosts = [$("gioLocale"), $("gioLocaleStudio")];
+    const hosts = [$("gioLocale"), $("gioLocaleStudio"), $("gioLocaleHeader")];
     hosts.forEach((host) => {
       if (!host) return;
       host.innerHTML = "";

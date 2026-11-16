@@ -109,6 +109,52 @@ def test_locale_switch_redraws_the_visible_overlay():
     assert 'if (auth && !auth.hidden) renderAuthTexts();' in APP_JS
 
 
+def test_all_six_v8_tabs_are_wired():
+    """الـ 6 tabs متاع v8 (office/ide/logs/terminal/rag/admin) من الكاتالوغ."""
+    expected = {
+        "tab-office": "v8.tab.office",
+        "tab-ide": "v8.tab.ide",
+        "tab-ops": "v8.tab.ops",
+        "tab-term": "v8.tab.term",
+        "tab-rag": "v8.tab.rag",
+        "tab-admin": "v8.tab.admin",
+    }
+    for tab_id, key in expected.items():
+        assert f'id="{tab_id}"' in INDEX_HTML, tab_id
+        assert f'data-i18n="{key}"' in INDEX_HTML, key
+        assert key in i18n.STRINGS, key
+
+
+def test_v8_panels_have_no_hardcoded_label_left_out():
+    """لكل tab عناصر مرجعية (تسميات، أزرار، placeholders) مربوطة بالكاتالوغ."""
+    required = [
+        "v8.office.cam_top", "v8.office.act_meet", "v8.office.swarm", "v8.office.send",
+        "v8.ide.zip", "v8.ide.save", "v8.ide.refresh",
+        "v8.ops.refresh",
+        "v8.term.run",
+        "v8.rag.save", "v8.rag.docs",
+        "v8.admin.save", "v8.admin.pull", "v8.admin.sync",
+    ]
+    for key in required:
+        assert f'data-i18n="{key}"' in INDEX_HTML, key
+
+
+def test_v8_placeholders_are_translated_too():
+    for key in ("v8.office.prompt_ph", "v8.ide.zip_ph", "v8.term.ph", "v8.rag.ph"):
+        assert f'data-i18n-placeholder="{key}"' in INDEX_HTML, key
+
+
+def test_no_v8_key_missing_in_any_locale():
+    v8_keys = [key for key in i18n.STRINGS if key.startswith("v8.")]
+    assert len(v8_keys) >= 40
+    missing = {
+        key: [code for code, value in i18n.STRINGS[key].items() if not (value or "").strip()]
+        for key in v8_keys
+    }
+    assert {k: v for k, v in missing.items() if v} == {}
+
+
+
 def test_onboarding_labels_come_from_the_catalogue():
     """أسئلة الـ onboarding ما عادش فيهم نص عربي صلب في الـ JS."""
     assert "onb.q.occupation.title" in APP_JS

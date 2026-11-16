@@ -183,6 +183,73 @@ _UI_STRINGS: Dict[str, tuple] = {
     "common.locale": ("اللغة", "اللغة", "Langue", "Language"),
 }
 
+# ---------------------------------------------------------------------------
+# v8 tabs (office / IDE / logs / terminal / rag / admin) — نفس المصدر.
+# ---------------------------------------------------------------------------
+_UI_STRINGS.update({
+    "v8.tab.office": ("🏢 خريطة الشركة الحية 3D (Voxel HQ Map)", "🏢 خريطة الشركة الحية 3D", "🏢 Carte 3D du siège", "🏢 Live 3D HQ map"),
+    "v8.tab.ide": ("📂 استوديو المشاريع والمعاينة و ZIP", "📂 استوديو المشاريع والمعاينة", "📂 Projets et aperçu", "📂 Projects and preview"),
+    "v8.tab.ops": ("📡 سجل الخبرات والـ Logs (JSONL)", "📡 سجل الخبرات والـ Logs", "📡 Journal d'expérience", "📡 Experience log"),
+    "v8.tab.term": ("🖥️ طرفية السيرفر", "🖥️ طرفية السيرفر", "🖥️ Terminal serveur", "🖥️ Server terminal"),
+    "v8.tab.rag": ("📚 دستور الشركة (Handbook)", "📚 دستور الشركة", "📚 Manuel d'entreprise", "📚 Company handbook"),
+    "v8.tab.admin": ("⚙️ الإدارة والنماذج (Admin)", "⚙️ الإدارة والنماذج", "⚙️ Administration", "⚙️ Admin"),
+    "v8.office.cam_top": ("🗺️ خريطة الطابق كاملة (Top-Down)", "🗺️ خريطة الطابق كاملة", "🗺️ Vue du dessus", "🗺️ Top-down map"),
+    "v8.office.cam_iso": ("🎮 منظور ماينكرافت 3D (Isometric)", "🎮 منظور ثلاثي الأبعاد", "🎮 Vue isométrique", "🎮 Isometric view"),
+    "v8.office.focus_ceo": ("👑 جناح المدير التنفيذي", "👑 جناح المدير التنفيذي", "👑 Bureau du CEO", "👑 CEO suite"),
+    "v8.office.focus_dev": ("💻 استوديو التطوير", "💻 استوديو التطوير", "💻 Studio dev", "💻 Dev studio"),
+    "v8.office.focus_sec": ("🛡️ مختبر الأمان", "🛡️ مختبر الأمان", "🛡️ Labo sécurité", "🛡️ Security lab"),
+    "v8.office.act_call": ("📞 المدير يرفع السماعة ويوزع المهام", "📞 المدير يوزّع المهام", "📞 Le CEO distribue les tâches", "📞 CEO dispatches tasks"),
+    "v8.office.act_meet": ("🤝 اجتماع الفريق في القاعة", "🤝 اجتماع الفريق", "🤝 Réunion d'équipe", "🤝 Team meeting"),
+    "v8.office.act_study": ("📚 ساعة دراسة GitHub", "📚 ساعة دراسة GitHub", "📚 Heure d'étude GitHub", "📚 GitHub study hour"),
+    "v8.office.act_report": ("🚶‍♂️ تسليم تقرير للـ CEO", "🚶‍♂️ تسليم تقرير للـ CEO", "🚶‍♂️ Rapport au CEO", "🚶‍♂️ Report to the CEO"),
+    "v8.office.hint_controls": (
+        "اسحب لتدوير الكاميرا • عجلة الماوس للزوم",
+        "اسحب لتدوير الكاميرا • عجلة الفأرة للتقريب",
+        "Glissez pour tourner • molette pour zoomer",
+        "Drag to rotate • wheel to zoom",
+    ),
+    "v8.office.crew": ("👥 طاقم الشركة ومشاعرهم الحية", "👥 طاقم الشركة", "👥 L'équipe", "👥 The crew"),
+    "v8.office.rooms": ("8 غرف متصلة", "8 غرف متصلة", "8 salles connectées", "8 rooms online"),
+    "v8.office.radar": ("📡 رادار الكواليس الحي", "📡 رادار الكواليس", "📡 Radar des coulisses", "📡 Live backstage radar"),
+    "v8.office.chat": ("💬 غرفة قيادة المدير التنفيذي", "💬 غرفة قيادة المدير التنفيذي", "💬 Salle de commande du CEO", "💬 CEO command room"),
+    "v8.office.swarm": ("🐝 إطلاق مهمة السرب الكاملة", "🐝 إطلاق مهمة السرب", "🐝 Lancer la mission swarm", "🐝 Launch swarm mission"),
+    "v8.office.prompt_ph": (
+        "أعطِ أمرك للمدير التنفيذي (مثال: ابنِ لي تطبيق ويب داخل مجلد خاص)...",
+        "أعطِ أمرك للمدير التنفيذي...",
+        "Donnez votre ordre au CEO (ex. : construis une app web)…",
+        "Give the CEO an order (e.g. build me a web app)…",
+    ),
+    "v8.office.send": ("🚀 إرسال", "🚀 إرسال", "🚀 Envoyer", "🚀 Send"),
+    "v8.ide.projects": ("📂 مشاريع وملفات Workspace", "📂 مشاريع وملفات الـ workspace", "📂 Projets et fichiers", "📂 Workspace projects"),
+    "v8.ide.refresh": ("🔄 تحديث", "🔄 تحديث", "🔄 Rafraîchir", "🔄 Refresh"),
+    "v8.ide.zip_ph": ("اسم المجلد (أو فارغ للكل)", "اسم المجلد (أو فارغ للكل)", "Nom du dossier (vide = tout)", "Folder name (empty = all)"),
+    "v8.ide.zip": ("📦 تصدير ZIP", "📦 تصدير ZIP", "📦 Exporter ZIP", "📦 Export ZIP"),
+    "v8.ide.pick": ("اختر ملفاً للمعاينة أو التعديل", "اختر ملفًا للمعاينة", "Choisissez un fichier", "Pick a file"),
+    "v8.ide.preview": ("👁️ معاينة حية / كود", "👁️ معاينة / كود", "👁️ Aperçu / code", "👁️ Preview / code"),
+    "v8.ide.download": ("⬇️ تحميل الملف", "⬇️ تحميل الملف", "⬇️ Télécharger", "⬇️ Download file"),
+    "v8.ide.save": ("💾 حفظ", "💾 حفظ", "💾 Enregistrer", "💾 Save"),
+    "v8.ops.title": (
+        "🧠 سجل الخبرات التطوري (experience_ledger.jsonl)",
+        "🧠 سجل الخبرات التطوري",
+        "🧠 Journal d'expérience",
+        "🧠 Experience ledger",
+    ),
+    "v8.ops.refresh": ("🔄 تحديث السجل", "🔄 تحديث السجل", "🔄 Rafraîchir le journal", "🔄 Refresh log"),
+    "v8.term.title": ("🖥️ طرفية السيرفر المباشرة (tn)", "🖥️ طرفية السيرفر المباشرة", "🖥️ Terminal serveur direct", "🖥️ Live server terminal"),
+    "v8.term.ph": ("أمر لينكس...", "أمر لينكس...", "Commande Linux…", "Linux command…"),
+    "v8.term.run": ("▶️ تنفيذ", "▶️ تنفيذ", "▶️ Exécuter", "▶️ Run"),
+    "v8.rag.add": ("📥 إضافة قاعدة لدستور الشركة (Handbook)", "📥 إضافة قاعدة للدستور", "📥 Ajouter une règle", "📥 Add a handbook rule"),
+    "v8.rag.ph": ("قواعد الشركة ووصف المهام...", "قواعد الشركة ووصف المهام...", "Règles et description des tâches…", "Company rules and task descriptions…"),
+    "v8.rag.save": ("📚 حفظ في الدستور", "📚 حفظ في الدستور", "📚 Enregistrer dans le manuel", "📚 Save to handbook"),
+    "v8.rag.docs": ("🗂️ وثائق الدستور المدمجة", "🗂️ وثائق الدستور المدمجة", "🗂️ Documents du manuel", "🗂️ Handbook documents"),
+    "v8.admin.node": ("⚙️ إعدادات عقدة Ollama والنماذج", "⚙️ إعدادات Ollama والنماذج", "⚙️ Nœud Ollama et modèles", "⚙️ Ollama node and models"),
+    "v8.admin.save": ("💾 حفظ الإعدادات", "💾 حفظ الإعدادات", "💾 Enregistrer", "💾 Save settings"),
+    "v8.admin.pull": ("📦 سحب نموذج جديد", "📦 سحب نموذج جديد", "📦 Télécharger un modèle", "📦 Pull a model"),
+    "v8.admin.sync": ("🔄 مزامنة GitHub", "🔄 مزامنة GitHub", "🔄 Synchronisation GitHub", "🔄 GitHub sync"),
+    "v8.admin.check": ("🔍 فحص", "🔍 فحص", "🔍 Vérifier", "🔍 Check"),
+    "v8.admin.update": ("⚡ تحديث", "⚡ تحديث", "⚡ Mettre à jour", "⚡ Update"),
+})
+
 for _key, (_tn, _ar, _fr, _en) in _UI_STRINGS.items():
     STRINGS[_key] = {"ar-TN": _tn, "ar": _ar, "fr": _fr, "en": _en}
 
