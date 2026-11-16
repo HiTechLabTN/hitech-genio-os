@@ -337,7 +337,15 @@ class GenioEngine:
     # ==========================================================================
     # TOOL EXECUTION & AUTO-SYNTAX VERIFICATION
     # ==========================================================================
-    def execute_tools_in_response(self, raw_text: str, agent_id: str = "Agent") -> List[Dict[str, Any]]:
+    def execute_tools_in_response(
+        self, raw_text: str, agent_id: str = "Agent", allow_shell: bool = True
+    ) -> List[Dict[str, Any]]:
+        """Execute the tool blocks in a model reply.
+
+        ``allow_shell`` comes from the persona's safety policy: a profile that
+        denies the shell must not get it back through the model's own
+        ``<run_cmd>`` blocks. The command is logged as blocked, never run.
+        """
         actions_log = []
 
         # 1. Extract learned playbooks (<learn_rule title="...">...</learn_rule>)
@@ -390,6 +398,11 @@ class GenioEngine:
             cmd = match.group(1).strip()
             if not cmd:
                 continue
+            if not allow_shell:
+                actions_log.append(
+                    {"type": "run_cmd", "cmd": cmd, "status": "blocked", "output": "shell denied by persona safety"}
+                )
+                continue
             res = self.run_workspace_command(cmd)
             actions_log.append({"type": "run_cmd", **res})
 
@@ -414,7 +427,15 @@ class GenioEngine:
     # ==========================================================================
     # REAL-TIME BEHIND-THE-SCENES SSE STREAMING GENERATOR (WITH AUTO-HEAL)
     # ==========================================================================
-    async def stream_task_events(self, agent_id: str, prompt: str, model_override: Optional[str] = None) -> AsyncGenerator[str, None]:
+    async def stream_task_events(
+        self,
+        agent_id: str,
+        prompt: str,
+        model_override: Optional[str] = None,
+        persona: Optional[Dict[str, Any]] = None,
+        model_plan: Optional[Dict[str, Any]] = None,
+        allow_shell: bool = True,
+    ) -> AsyncGenerator[str, None]:
         """
         Streams real-time Server-Sent Events (SSE) showing:
         - Memory retrieval & matched playbooks
@@ -427,7 +448,11 @@ class GenioEngine:
 
         clean_prompt = re.sub(r'\[span_\d+\]\((start|end)_span\)', '', prompt).strip()
         agent = AGENTS_REGISTRY.get(agent_id, AGENTS_REGISTRY["Genio-Rayes"])
-        model = model_override or self.config["primary_model"]
+        # المرحلة 4: الموديل يختارو الـ router حسب الشخصية، ماشي الافتراضي دايمًا
+        plan = model_plan or {}
+        persona = persona or {}
+        persona_prompt = str(persona.get("system_prompt") or "").strip()
+        model = model_override or plan.get("model") or self.config["primary_model"]
         url = f"{self.config['ollama_host'].rstrip('/')}/api/chat"
 
         yield sse("stage", {"agent": agent_id, "message": f"🧠 [{agent_id}] جاري استرجاع الخبرات السابقة والـ Playbooks من الذاكرة التطورية..."})
@@ -440,6 +465,8 @@ class GenioEngine:
             f"{memory_context}\n"
             f"[WORKSPACE CONTEXT]\nRoot Path: {self.workspace}\nExisting Files: {existing_files}\n"
         )
+        if persona_prompt:
+            sys_prompt = f"{persona_prompt}\n\n{sys_prompt}"
         if rag_text:
             sys_prompt += f"\n[RAG KNOWLEDGE]\n{rag_text}\n"
 
@@ -450,10 +477,16 @@ class GenioEngine:
         while attempt <= max_retries:
             attempt += 1
             start_t = time.time()
-            yield sse("stage", {
+            stage_payload = {
                 "agent": agent_id,
-                "message": f"⚡ [{agent_id}] متصل بـ {model} على Legion (المحاولة {attempt}/{max_retries+1}) — بدأ البث الحي للكواليس..."
-            })
+                "model": model,
+                "model_source": plan.get("status", "config"),
+                "persona": persona.get("pack") or "",
+                "message": f"⚡ [{agent_id}] متصل بـ {model} (المحاولة {attempt}/{max_retries+1}) — بدأ البث الحي للكواليس...",
+            }
+            if plan.get("message"):
+                stage_payload["plan_message"] = plan["message"]
+            yield sse("stage", stage_payload)
 
             payload = {
                 "model": model,
@@ -498,7 +531,9 @@ class GenioEngine:
             tps = round(token_count / elapsed, 1) if elapsed > 0 else 0
 
             yield sse("stage", {"agent": agent_id, "message": f"🛠️ [{agent_id}] اكتمل التوليد ({token_count} كلمة، {tps} tok/s). جاري تنفيذ الأوامر وكتابة الملفات في /data..."})
-            actions = self.execute_tools_in_response(full_reply, agent_id=agent_id)
+            actions = self.execute_tools_in_response(
+                full_reply, agent_id=agent_id, allow_shell=allow_shell
+            )
 
             errors_found = []
             for act in actions:
@@ -599,13 +634,25 @@ class GenioEngine:
                     snippets.append(f"--- [RAG: {p.name}] ---\n{txt[:1200]}")
         return "\n\n".join(snippets[:3])
 
-    async def dispatch_task(self, agent_id: str, prompt: str, model_override: Optional[str] = None, use_rag: bool = True) -> Dict[str, Any]:
+    async def dispatch_task(
+        self,
+        agent_id: str,
+        prompt: str,
+        model_override: Optional[str] = None,
+        use_rag: bool = True,
+        persona: Optional[Dict[str, Any]] = None,
+        model_plan: Optional[Dict[str, Any]] = None,
+        allow_shell: bool = True,
+    ) -> Dict[str, Any]:
         # Synchronous wrapper for TUI compatibility
         full_reply = ""
         actions = []
         elapsed = 0.0
         tps = 0.0
-        async for event_str in self.stream_task_events(agent_id, prompt, model_override):
+        async for event_str in self.stream_task_events(
+            agent_id, prompt, model_override,
+            persona=persona, model_plan=model_plan, allow_shell=allow_shell,
+        ):
             if event_str.startswith("data: "):
                 ev = json.loads(event_str[6:])
                 if ev.get("event") == "token":

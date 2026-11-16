@@ -6,13 +6,16 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Any, Dict, Optional
 import httpx
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from core import security
 from core import auth as auth_core
+from core import personas
+from core import router as model_router
+from core.db import get_db
 from core.engine import (
     GenioEngine,
     AGENTS_REGISTRY,
@@ -61,7 +64,11 @@ app.include_router(skillpacks_api.router)
 @app.exception_handler(StarletteHTTPException)
 async def http_error_handler(request: Request, exc: StarletteHTTPException):
     """عقد واحد للأخطاء: {"ok": false, "error": ...} — الواجهة تعتمد عليه."""
-    return JSONResponse({"ok": False, "error": str(exc.detail)}, status_code=exc.status_code)
+    return JSONResponse(
+        {"ok": False, "error": str(exc.detail)},
+        status_code=exc.status_code,
+        headers=getattr(exc, "headers", None),
+    )
 
 
 def _feature_gate(enabled: bool, feature: str, setting: str, env_var: str):
@@ -169,17 +176,77 @@ async def get_status():
     }
 
 
+# Mode → router task kind (المرحلة 4)
+PERSONA_TASKS = {"dev": "code", "chat": "chat", "enterprise": "chat"}
+# حالات الـ router اللي فيها ما نقدروش نولوّدو — نرجعو رسالة واضحة بدل خطأ اتصال
+PLAN_BLOCKED = {"offline", "no_models", "unavailable"}
+
+
+def _shell_policy(persona: Optional[Dict[str, Any]]) -> bool:
+    """الـ <run_cmd> في جواب الموديل يتبع نفس سياسة الشخصية، ماشي enable_shell برك."""
+    if not persona:
+        return True  # bootstrap / سلوك v8 القديم
+    return str((persona.get("safety") or {}).get("shell")) == "allow_workspace"
+
+
+async def _persona_context(request: Request):
+    """الأدمغة الزوز في مسار واحد: الشخصية تختار الموديل والنبرة والصلاحيات."""
+    user = auth_api.current_user(request)
+    if user is None:
+        return {}, {}
+    with get_db() as conn:
+        profile = auth_core.default_profile(conn, int(user["id"]))
+    if not int(profile.get("onboarding_done") or 0):
+        return {}, {}
+    persona = personas.resolve(profile)
+    status = await engine.check_ollama_status()
+    plan = model_router.plan(
+        profile,
+        PERSONA_TASKS.get(str(persona.get("mode")), "chat"),
+        available=status.get("models") or [],
+        ollama_online=bool(status.get("online")),
+    )
+    return persona, plan
+
+
 @app.post("/api/task/stream")
-async def stream_task(req: TaskRequest):
+async def stream_task(req: TaskRequest, request: Request):
+    persona, plan = await _persona_context(request)
+    if plan.get("status") in PLAN_BLOCKED and not req.model:
+        message = plan.get("message") or "الموديل ماشي متاح توّا."
+
+        async def _blocked():
+            yield "data: " + json.dumps(
+                {"event": "error", "agent": req.agent_id, "error": message}, ensure_ascii=False
+            ) + "\n\n"
+
+        return StreamingResponse(_blocked(), media_type="text/event-stream")
     return StreamingResponse(
-        engine.stream_task_events(req.agent_id, req.prompt, req.model),
+        engine.stream_task_events(
+            req.agent_id,
+            req.prompt,
+            req.model,
+            persona=persona,
+            model_plan=plan,
+            allow_shell=_shell_policy(persona),
+        ),
         media_type="text/event-stream"
     )
 
 
 @app.post("/api/task")
-async def run_task(req: TaskRequest):
-    return await engine.dispatch_task(req.agent_id, req.prompt, req.model)
+async def run_task(req: TaskRequest, request: Request):
+    persona, plan = await _persona_context(request)
+    if plan.get("status") in PLAN_BLOCKED and not req.model:
+        return {"ok": False, "agent": req.agent_id, "error": plan.get("message") or "الموديل ماشي متاح توّا."}
+    return await engine.dispatch_task(
+        req.agent_id,
+        req.prompt,
+        req.model,
+        persona=persona,
+        model_plan=plan,
+        allow_shell=_shell_policy(persona),
+    )
 
 
 @app.get("/api/memory")

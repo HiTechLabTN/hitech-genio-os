@@ -31,6 +31,11 @@ CSRF_HEADER = "X-Genio-CSRF"
 SESSION_TTL = 7 * 24 * 3600
 MIN_PASSWORD_LENGTH = 8
 
+# Brute-force protection: 5 failures inside 15 minutes lock the email for 15.
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_WINDOW = 15 * 60
+LOGIN_LOCKOUT = 15 * 60
+
 _SCRYPT = {"n": 2**14, "r": 8, "p": 1, "dklen": 32}
 
 
@@ -188,6 +193,92 @@ def delete_session(conn: sqlite3.Connection, token: str) -> None:
 
 def purge_expired_sessions(conn: sqlite3.Connection) -> int:
     cursor = conn.execute("DELETE FROM sessions WHERE expires_at < ?", (time.time(),))
+    return cursor.rowcount or 0
+
+
+# ---------------------------------------------------------------------------
+# Login throttling
+# ---------------------------------------------------------------------------
+def _email_key(email: str) -> str:
+    return (email or "").strip().lower()
+
+
+def record_login_failure(conn: sqlite3.Connection, email: str, ip: str = "") -> int:
+    """Record a failed attempt and return the count inside the window."""
+    now = time.time()
+    conn.execute(
+        "INSERT INTO login_attempts (email, ip, created_at) VALUES (?, ?, ?)",
+        (_email_key(email), ip or "", now),
+    )
+    # Keep the table small: anything older than 4 windows is useless.
+    conn.execute("DELETE FROM login_attempts WHERE created_at < ?", (now - LOGIN_WINDOW * 4,))
+    return login_failure_count(conn, email)
+
+
+def login_failure_count(conn: sqlite3.Connection, email: str) -> int:
+    row = conn.execute(
+        "SELECT COUNT(*) AS n FROM login_attempts WHERE email = ? AND created_at >= ?",
+        (_email_key(email), time.time() - LOGIN_WINDOW),
+    ).fetchone()
+    return int(row["n"] or 0) if row else 0
+
+
+def login_retry_after(conn: sqlite3.Connection, email: str) -> int:
+    """Seconds the caller must wait, or 0 when the email is not locked."""
+    if login_failure_count(conn, email) < LOGIN_MAX_ATTEMPTS:
+        return 0
+    row = conn.execute(
+        "SELECT MAX(created_at) AS last FROM login_attempts WHERE email = ? AND created_at >= ?",
+        (_email_key(email), time.time() - LOGIN_WINDOW),
+    ).fetchone()
+    last = float(row["last"] or 0) if row else 0.0
+    return max(int(last + LOGIN_LOCKOUT - time.time()), 0)
+
+
+def clear_login_failures(conn: sqlite3.Connection, email: str) -> None:
+    conn.execute("DELETE FROM login_attempts WHERE email = ?", (_email_key(email),))
+
+
+# ---------------------------------------------------------------------------
+# Session management (list / revoke)
+# ---------------------------------------------------------------------------
+def list_sessions(
+    conn: sqlite3.Connection, user_id: int, current_token: str = ""
+) -> List[Dict[str, Any]]:
+    conn.execute("DELETE FROM sessions WHERE expires_at < ?", (time.time(),))
+    rows = conn.execute(
+        "SELECT token, created_at, expires_at FROM sessions WHERE user_id = ? ORDER BY created_at DESC",
+        (user_id,),
+    ).fetchall()
+    return [
+        {
+            "id": str(row["token"])[:10],
+            "created_at": float(row["created_at"]),
+            "expires_at": float(row["expires_at"]),
+            "current": str(row["token"]) == str(current_token),
+        }
+        for row in rows
+    ]
+
+
+def revoke_session(conn: sqlite3.Connection, user_id: int, session_id: str) -> int:
+    """Revoke by id prefix (the token itself never leaves the cookie)."""
+    prefix = str(session_id or "").strip()
+    if not prefix:
+        return 0
+    rows = conn.execute("SELECT token FROM sessions WHERE user_id = ?", (user_id,)).fetchall()
+    removed = 0
+    for row in rows:
+        if str(row["token"]).startswith(prefix):
+            conn.execute("DELETE FROM sessions WHERE token = ?", (str(row["token"]),))
+            removed += 1
+    return removed
+
+
+def revoke_other_sessions(conn: sqlite3.Connection, user_id: int, keep_token: str) -> int:
+    cursor = conn.execute(
+        "DELETE FROM sessions WHERE user_id = ? AND token != ?", (user_id, keep_token or "")
+    )
     return cursor.rowcount or 0
 
 

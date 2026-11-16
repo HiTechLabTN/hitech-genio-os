@@ -178,7 +178,18 @@ CREATE TABLE IF NOT EXISTS projects (
 CREATE UNIQUE INDEX IF NOT EXISTS projects_user_slug ON projects (user_id, slug);
 """
 
-MIGRATIONS: List[str] = [MIGRATION_1, MIGRATION_2, MIGRATION_3]
+MIGRATION_4 = """
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    email      TEXT NOT NULL,
+    ip         TEXT NOT NULL DEFAULT '',
+    created_at REAL NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS login_attempts_email ON login_attempts (email, created_at);
+"""
+
+MIGRATIONS: List[str] = [MIGRATION_1, MIGRATION_2, MIGRATION_3, MIGRATION_4]
 
 
 def data_dir() -> Path:

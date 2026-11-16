@@ -38,6 +38,15 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SessionRevokeRequest(BaseModel):
+    id: Optional[str] = None
+    all_others: bool = False
+
+
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client else ""
+
+
 class CreateUserRequest(BaseModel):
     email: str
     password: str
@@ -154,14 +163,80 @@ def bootstrap(payload: BootstrapRequest, request: Request, response: Response):
 @router.post("/auth/login")
 def login(payload: LoginRequest, request: Request, response: Response):
     with get_db() as conn:
+        wait = auth_core.login_retry_after(conn, payload.email)
+        if wait > 0:
+            auth_core.audit(
+                conn, "auth.login", actor=payload.email, status="locked", detail=f"retry_after={wait}"
+            )
+            conn.commit()
+            raise HTTPException(
+                status.HTTP_429_TOO_MANY_REQUESTS,
+                f"محاولات كثيرة — عاود بعد {wait} ثانية",
+                headers={"Retry-After": str(wait)},
+            )
         user = auth_core.authenticate(conn, payload.email, payload.password)
         if user is None:
-            auth_core.audit(conn, "auth.login", actor=payload.email, status="denied")
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "إيميل ولا كلمة سر غالطة")
+            failures = auth_core.record_login_failure(conn, payload.email, _client_ip(request))
+            auth_core.audit(
+                conn, "auth.login", actor=payload.email, status="denied", detail=f"failures={failures}"
+            )
+            # العدد لازم يتسجّل قبل ما نرفضو الطلب (get_db ما تعملش commit وقت الاستثناء)
+            conn.commit()
+            if failures >= auth_core.LOGIN_MAX_ATTEMPTS:
+                raise HTTPException(
+                    status.HTTP_429_TOO_MANY_REQUESTS,
+                    f"محاولات كثيرة — الحساب مقفول {auth_core.LOGIN_LOCKOUT // 60} دقيقة",
+                    headers={"Retry-After": str(auth_core.LOGIN_LOCKOUT)},
+                )
+            raise HTTPException(
+                status.HTTP_401_UNAUTHORIZED,
+                f"إيميل ولا كلمة سر غالطة (باقي {auth_core.LOGIN_MAX_ATTEMPTS - failures} محاولات)",
+            )
+        auth_core.clear_login_failures(conn, payload.email)
         session = auth_core.create_session(conn, user["id"])
         auth_core.audit(conn, "auth.login", user_id=user["id"], actor=user["email"])
     _set_session(response, session, request)
     return _session_payload(user, session, request)
+
+
+@router.get("/auth/sessions")
+def my_sessions(request: Request):
+    user = current_user(request)
+    if user is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "authentication required")
+    token = request.cookies.get(SESSION_COOKIE, "")
+    with get_db() as conn:
+        return {
+            "ok": True,
+            "sessions": auth_core.list_sessions(conn, int(user["id"]), token),
+            "ttl_seconds": auth_core.SESSION_TTL,
+        }
+
+
+@router.post("/auth/sessions/revoke")
+def revoke_sessions(payload: SessionRevokeRequest, request: Request):
+    user = current_user(request)
+    if user is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "authentication required")
+    token = request.cookies.get(SESSION_COOKIE, "")
+    with get_db() as conn:
+        if payload.all_others:
+            removed = auth_core.revoke_other_sessions(conn, int(user["id"]), token)
+        elif payload.id:
+            removed = auth_core.revoke_session(conn, int(user["id"]), payload.id)
+        else:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "حدّد id ولا all_others")
+        if removed:
+            auth_core.audit(
+                conn,
+                "auth.session.revoke",
+                user_id=int(user["id"]),
+                actor=user["email"],
+                detail=f"removed={removed}",
+            )
+    if not removed:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "جلسة ما لقيناهاش")
+    return {"ok": True, "removed": removed}
 
 
 @router.post("/auth/logout")
