@@ -180,3 +180,22 @@
   border: 1px solid var(--cyan, #00f2fe); border-radius: 12px;
   padding: 12px 18px; font-size: .9rem; max-width: 90vw;
 }
+
+/* --- locale switcher --- */
+.gio-locales {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
+  justify-content: center;
+}
+.gio-studio-head .gio-locales { margin: 0; justify-content: flex-start; }
+.gio-locale {
+  background: transparent; cursor: pointer; font-family: inherit;
+  border: 1px solid rgba(148, 163, 184, .35);
+  color: var(--muted, #94a3b8);
+  border-radius: 999px; padding: 4px 12px; font-size: .78rem;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.gio-locale:hover { color: var(--text, #f8fafc); border-color: rgba(0, 242, 254, .45); }
+.gio-locale.active {
+  color: #04121c; border-color: var(--cyan, #00f2fe);
+  background: var(--cyan, #00f2fe); font-weight: 600;
+}

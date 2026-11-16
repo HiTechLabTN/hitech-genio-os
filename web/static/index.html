@@ -173,56 +173,58 @@
     <h2 id="gioAuthTitle">ادخل للمنصّة</h2>
     <p id="gioAuthHint" class="gio-muted"></p>
     <form id="gioAuthForm">
-      <label>الإيميل<input id="gioEmail" class="gio-input" type="email" required dir="ltr" autocomplete="username"></label>
-      <label id="gioNameRow" hidden>الاسم<input id="gioName" class="gio-input" autocomplete="name"></label>
-      <label>كلمة السر<input id="gioPassword" class="gio-input" type="password" required minlength="8" dir="ltr" autocomplete="current-password"></label>
+      <label><span data-i18n="auth.email">الإيميل</span><input id="gioEmail" class="gio-input" type="email" required dir="ltr" autocomplete="username"></label>
+      <label id="gioNameRow" hidden><span data-i18n="auth.name">الاسم</span><input id="gioName" class="gio-input" autocomplete="name"></label>
+      <label><span data-i18n="auth.password">كلمة السر</span><input id="gioPassword" class="gio-input" type="password" required minlength="8" dir="ltr" autocomplete="current-password"></label>
       <p id="gioAuthError" class="gio-error" hidden></p>
       <div class="gio-actions end">
-        <button id="gioAuthSubmit" class="gio-btn primary" type="submit">ادخل</button>
+        <button id="gioAuthSubmit" class="gio-btn primary" type="submit" data-i18n="action.login">ادخل</button>
       </div>
     </form>
     <p id="gioAuthFoot" class="gio-muted gio-small"></p>
+    <div id="gioLocale" class="gio-locales" aria-label="Language"></div>
   </div>
 </div>
 
 <div id="gioOnboarding" class="gio-overlay" hidden>
   <div class="gio-card wide">
     <div class="gio-progress"><span id="gioProgressBar"></span></div>
-    <p class="gio-muted gio-small"><span id="gioObCounter"></span> — «يلا نعرفوك»</p>
+    <p class="gio-muted gio-small"><span id="gioObCounter"></span> — <span data-i18n="onb.intro">«يلا نعرفوك»</span></p>
     <h2 id="gioObTitle"></h2>
     <p id="gioObHint" class="gio-muted"></p>
     <div id="gioObBody"></div>
     <div class="gio-actions">
-      <button id="gioObBack" class="gio-btn ghost" type="button">اللي قبل</button>
-      <button id="gioObNext" class="gio-btn primary" type="button">التالي</button>
-      <button id="gioObSkip" class="gio-btn ghost" type="button">تعدّى</button>
+      <button id="gioObBack" class="gio-btn ghost" type="button" data-i18n="onb.back">اللي قبل</button>
+      <button id="gioObNext" class="gio-btn primary" type="button" data-i18n="onb.next">التالي</button>
+      <button id="gioObSkip" class="gio-btn ghost" type="button" data-i18n="onboarding.skip">تعدّى</button>
     </div>
   </div>
 </div>
 
 <section id="gioStudio" class="gio-fullview" hidden>
   <div class="gio-studio-head">
-    <h2>🚀 Vibe Studio — من فكرة لتطبيق</h2>
+    <h2 data-i18n="studio.title">🚀 Vibe Studio — من فكرة لتطبيق</h2>
     <div class="gio-actions" style="margin:0">
-      <button id="gioPanelRefresh" class="gio-btn ghost" type="button">↻ تحديث</button>
-      <button id="gioStudioClose" class="gio-btn ghost" type="button">رجوع للمنصّة</button>
-      <button id="gioStudioLogout" class="gio-btn ghost" type="button">خروج</button>
+      <div id="gioLocaleStudio" class="gio-locales" aria-label="Language"></div>
+      <button id="gioPanelRefresh" class="gio-btn ghost" type="button" data-i18n="studio.refresh">↻ تحديث</button>
+      <button id="gioStudioClose" class="gio-btn ghost" type="button" data-i18n="studio.back">رجوع للمنصّة</button>
+      <button id="gioStudioLogout" class="gio-btn ghost" type="button" data-i18n="action.logout">خروج</button>
     </div>
   </div>
   <div class="gio-studio-grid">
     <aside class="gio-panel">
-      <button id="gioNewProject" class="gio-btn primary" type="button">+ مشروع جديد</button>
+      <button id="gioNewProject" class="gio-btn primary" type="button" data-i18n="studio.new">+ مشروع جديد</button>
       <div id="gioProjectList" class="gio-list"></div>
     </aside>
     <main class="gio-panel">
-      <p id="gioProjectEmpty" class="gio-muted">اختار مشروع ولا اعمل واحد جديد.</p>
+      <p id="gioProjectEmpty" class="gio-muted" data-i18n="studio.empty">اختار مشروع ولا اعمل واحد جديد.</p>
       <div id="gioProjectDetail" hidden>
         <h3 id="gioProjectName"></h3>
         <p id="gioProjectMeta" class="gio-muted gio-small"></p>
         <div class="gio-actions">
-          <button id="gioRunMission" class="gio-btn primary" type="button">▶ شغّل المهمة (PM → QA)</button>
-          <button id="gioRefreshFiles" class="gio-btn ghost" type="button">↻ الملفات</button>
-          <a id="gioExport" class="gio-btn ghost" href="#">⬇ ZIP</a>
+          <button id="gioRunMission" class="gio-btn primary" type="button" data-i18n="studio.mission">▶ شغّل المهمة (PM → QA)</button>
+          <button id="gioRefreshFiles" class="gio-btn ghost" type="button" data-i18n="studio.files">↻ الملفات</button>
+          <a id="gioExport" class="gio-btn ghost" href="#" data-i18n="studio.zip">⬇ ZIP</a>
         </div>
         <div class="gio-studio-body">
           <div id="gioFileList" class="gio-files"></div>
@@ -235,15 +237,15 @@
 
   <div id="gioNewProjectForm" class="gio-modal" hidden>
     <div class="gio-card">
-      <h2>مشروع جديد</h2>
-      <p class="gio-muted gio-small">اكتب الفكرة بالدارجة، اختار القالب، وبدا.</p>
+      <h2 data-i18n="studio.modal.title">مشروع جديد</h2>
+      <p class="gio-muted gio-small" data-i18n="studio.modal.hint">اكتب الفكرة بالدارجة، اختار القالب، وبدا.</p>
       <form id="gioNewProjectForm2">
-        <label>الاسم<input id="gioNewName" class="gio-input" placeholder="متجر صغير"></label>
-        <label>القالب<select id="gioTemplate" class="gio-select"></select></label>
-        <label>الفكرة<textarea id="gioNewIdea" class="gio-textarea" placeholder="نحب تطبيق متجر إلكتروني صغير، فيه منتجات وسلّة ودفع عند الاستلام"></textarea></label>
+        <label><span data-i18n="studio.field.name">الاسم</span><input id="gioNewName" class="gio-input" placeholder="متجر صغير"></label>
+        <label><span data-i18n="studio.field.template">القالب</span><select id="gioTemplate" class="gio-select"></select></label>
+        <label><span data-i18n="studio.field.idea">الفكرة</span><textarea id="gioNewIdea" class="gio-textarea" placeholder="نحب تطبيق متجر إلكتروني صغير، فيه منتجات وسلّة ودفع عند الاستلام"></textarea></label>
         <div class="gio-actions end">
-          <button id="gioNewCancel" class="gio-btn ghost" type="button">ألغي</button>
-          <button id="gioCreateSubmit" class="gio-btn primary" type="submit">اعمل المشروع</button>
+          <button id="gioNewCancel" class="gio-btn ghost" type="button" data-i18n="action.cancel">ألغي</button>
+          <button id="gioCreateSubmit" class="gio-btn primary" type="submit" data-i18n="studio.create">اعمل المشروع</button>
         </div>
       </form>
     </div>

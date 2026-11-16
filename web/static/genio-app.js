@@ -1,9 +1,13 @@
 /* Genio OS — ربط الواجهة بـ API v9
-   login/logout + onboarding (7 أسئلة) + Vibe Studio (projects + preview) */
+   login/logout + onboarding (7 أسئلة) + Vibe Studio (projects + preview)
+   + i18n/RTL: كل نص من /api/i18n، والـ dir data ماشي تخمين */
 (function () {
   "use strict";
 
   const CSRF_KEY = "genio_csrf";
+  const LOCALE_KEY = "genio_locale";
+  const FALLBACK_LOCALE = "ar-TN";
+
   const state = {
     user: null,
     csrf: null,
@@ -15,7 +19,92 @@
     current: null,
   };
 
+  // locale + catalogue: المصدر الوحيد للنصوص هو /api/i18n
+  const i18n = {
+    locale: FALLBACK_LOCALE,
+    dir: "rtl",
+    lang: "ar",
+    strings: {},
+    locales: [],
+  };
+
   const $ = (id) => document.getElementById(id);
+
+  // ------------------------------------------------------------------ i18n
+  function t(key, fallback) {
+    const value = i18n.strings[key];
+    return value === undefined || value === "" ? (fallback || key) : value;
+  }
+
+  function applyLocale() {
+    const root = document.documentElement;
+    root.setAttribute("dir", i18n.dir);
+    root.setAttribute("lang", i18n.lang);
+
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      el.textContent = t(el.getAttribute("data-i18n"), el.textContent);
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-placeholder");
+      el.setAttribute("placeholder", t(key, el.getAttribute("placeholder") || ""));
+    });
+
+    if (state.user) renderUserChip();
+    const auth = $("gioAuth");
+    if (auth && !auth.hidden) renderAuthTexts();
+    const onboarding = $("gioOnboarding");
+    if (onboarding && !onboarding.hidden) renderStep();
+  }
+
+  function renderAuthTexts() {
+    const bootstrap = state.mode === "bootstrap";
+    $("gioAuthTitle").textContent = bootstrap ? t("auth.title.bootstrap") : t("auth.title.login");
+    $("gioAuthHint").textContent = bootstrap ? t("auth.hint.bootstrap") : t("auth.hint.login");
+    $("gioAuthSubmit").textContent = bootstrap ? t("auth.create") : t("action.login");
+    $("gioNameRow").hidden = !bootstrap;
+  }
+
+  async function setLocale(locale) {
+    const res = await api("/api/i18n/" + encodeURIComponent(locale));
+    if (!res.ok || !res.data.id) return false;
+    i18n.locale = res.data.id;
+    i18n.strings = res.data.strings || {};
+    i18n.dir = res.data.dir || "rtl";
+    i18n.lang = res.data.html_lang || "ar";
+    try { localStorage.setItem(LOCALE_KEY, i18n.locale); } catch (e) {}
+    applyLocale();
+    renderLocaleSwitcher();
+    return true;
+  }
+
+  function storedLocale() {
+    try { return localStorage.getItem(LOCALE_KEY); } catch (e) { return null; }
+  }
+
+  async function loadI18n() {
+    const list = await api("/api/i18n");
+    if (list.ok) i18n.locales = list.data.locales || [];
+    const wanted = storedLocale() || (list.ok ? list.data.default : FALLBACK_LOCALE);
+    await setLocale(wanted || FALLBACK_LOCALE);
+  }
+
+  function renderLocaleSwitcher() {
+    const hosts = [$("gioLocale"), $("gioLocaleStudio")];
+    hosts.forEach((host) => {
+      if (!host) return;
+      host.innerHTML = "";
+      (i18n.locales.length ? i18n.locales : [{ id: FALLBACK_LOCALE, label: "دارجة" }]).forEach((item) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "gio-locale" + (item.id === i18n.locale ? " active" : "");
+        btn.textContent = item.label;
+        btn.title = item.id;
+        btn.onclick = () => { setLocale(item.id); };
+        host.appendChild(btn);
+      });
+      host.hidden = false;
+    });
+  }
 
   // ---------------------------------------------------------------- API helper
   function csrf() {
@@ -67,13 +156,7 @@
     state.mode = mode;
     show("gioAuth", true);
     show("gioOnboarding", false);
-    const bootstrap = mode === "bootstrap";
-    $("gioAuthTitle").textContent = bootstrap ? "أوّل حساب (المالك)" : "ادخل للمنصّة";
-    $("gioAuthHint").textContent = bootstrap
-      ? "ما فمّاش حتى حساب. اعمل حساب المالك الأوّل — بعدو المنصّة تولّي محمية بالجلسة."
-      : "الإيميل وكلمة السر متاعك.";
-    $("gioNameRow").hidden = !bootstrap;
-    $("gioAuthSubmit").textContent = bootstrap ? "اعمل الحساب" : "ادخل";
+    renderAuthTexts();
     $("gioAuthFoot").textContent = hint || "";
     $("gioAuthError").hidden = true;
     setTimeout(() => $("gioEmail").focus(), 50);
@@ -99,7 +182,7 @@
     try {
       const res = await api(path, { method: "POST", body: body });
       if (!res.ok) {
-        authError(res.data.error || "ما قدرناش ندخلو (" + res.status + ")");
+        authError(res.data.error || "(" + res.status + ")");
         return;
       }
       rememberSession(res.data);
@@ -115,7 +198,7 @@
     show("gioAuth", false);
     const me = await api("/api/me");
     if (!me.ok) {
-      showAuth("login", "الجلسة ما تثبّتش — عاود ادخل.");
+      showAuth("login", t("auth.hint.session"));
       return;
     }
     state.user = me.data.user;
@@ -142,7 +225,7 @@
     role.style.opacity = ".7";
     role.textContent = state.user.role;
     const out = document.createElement("button");
-    out.textContent = "خروج";
+    out.textContent = t("action.logout");
     out.onclick = logout;
     chip.append(who, role, out);
     host.appendChild(chip);
@@ -164,39 +247,39 @@
   // ------------------------------------------------------------- onboarding UI
   const STEPS = [
     {
-      key: "occupation", title: "شنوّة تخدم؟", hint: "نختارو الشخصية والأدوات على أساسها.",
+      key: "occupation", titleKey: "onb.q.occupation.title", hintKey: "onb.q.occupation.hint",
       type: "choice", options: [
-        ["student", "طالب"], ["employee", "موظّف"], ["freelance", "حرّ"],
-        ["founder", "صاحب مشروع"], ["enterprise", "مؤسسة"],
+        ["student", "onb.opt.student"], ["employee", "onb.opt.employee"], ["freelance", "onb.opt.freelance"],
+        ["founder", "onb.opt.founder"], ["enterprise", "onb.opt.enterprise"],
       ],
     },
     {
-      key: "goals", title: "شنوّة تحب تعمل بالـ AI؟", hint: "تنجّم تختار أكثر من وحدة.",
+      key: "goals", titleKey: "onb.q.goals.title", hintKey: "onb.q.goals.hint",
       type: "multi", options: [
-        ["chat", "محادثة"], ["writing", "كتابة"], ["code", "كود"], ["devops", "DevOps"],
-        ["data", "تحليل بيانات"], ["marketing", "تسويق"], ["support", "دعم عملاء"], ["pm", "إدارة مشاريع"],
+        ["chat", "onb.opt.chat"], ["writing", "onb.opt.writing"], ["code", "onb.opt.code"], ["devops", "onb.opt.devops"],
+        ["data", "onb.opt.data"], ["marketing", "onb.opt.marketing"], ["support", "onb.opt.support"], ["pm", "onb.opt.pm"],
       ],
     },
     {
-      key: "technical_level", title: "مستواك التقني؟", hint: "يحدّد صلاحيات الطرفية والـ sandbox.",
-      type: "choice", options: [["beginner", "مبتدئ"], ["intermediate", "متوسّط"], ["advanced", "متقدّم"]],
+      key: "technical_level", titleKey: "onb.q.level.title", hintKey: "onb.q.level.hint",
+      type: "choice", options: [["beginner", "onb.opt.beginner"], ["intermediate", "onb.opt.intermediate"], ["advanced", "onb.opt.advanced"]],
     },
     {
-      key: "register", title: "لغة الردود؟", hint: "", type: "choice",
-      options: [["derja", "دارجة تونسية"], ["fusha", "عربي فصحى"], ["fr", "Français"], ["en", "English"]],
+      key: "register", titleKey: "onb.q.register.title", hintKey: "onb.q.register.hint", type: "choice",
+      options: [["derja", "onb.opt.derja"], ["fusha", "onb.opt.fusha"], ["fr", "onb.opt.fr"], ["en", "onb.opt.en"]],
     },
     {
-      key: "env", title: "وين يخدم الـ AI؟", hint: "محلي = بياناتك ما تخرجش.",
-      type: "choice", options: [["local", "جهازي"], ["server", "سيرفر الشركة"], ["offline", "offline"]],
+      key: "env", titleKey: "onb.q.env.title", hintKey: "onb.q.env.hint", type: "choice",
+      options: [["local", "onb.opt.local"], ["server", "onb.opt.server"], ["offline", "onb.opt.offline"]],
     },
     {
-      key: "data_sensitivity", title: "عندك بيانات حسّاسة؟", hint: "عالٍ = الـ shell والشبكة يتقفلو.",
-      type: "choice", options: [["low", "عادي"], ["medium", "متوسّط"], ["high", "عالٍ"]],
+      key: "data_sensitivity", titleKey: "onb.q.sensitivity.title", hintKey: "onb.q.sensitivity.hint", type: "choice",
+      options: [["low", "onb.opt.low"], ["medium", "onb.opt.medium"], ["high", "onb.opt.high"]],
     },
     {
-      key: "preferred_tools", title: "أهم أداة تحب تلقاها جاهزة؟", hint: "اختياري — تنجّم تعدّي.",
+      key: "preferred_tools", titleKey: "onb.q.tools.title", hintKey: "onb.q.tools.hint",
       type: "multi", optional: true, options: [
-        ["files", "ملفات"], ["shell_sandboxed", "طرفية آمنة"], ["git", "Git"], ["rag", "قاعدة معرفة"],
+        ["files", "onb.opt.files"], ["shell_sandboxed", "onb.opt.shell_sandboxed"], ["git", "onb.opt.git"], ["rag", "onb.opt.rag"],
       ],
     },
   ];
@@ -219,24 +302,28 @@
     const step = STEPS[state.step];
     const total = STEPS.length;
     $("gioProgressBar").style.width = Math.round(((state.step + 1) / total) * 100) + "%";
-    $("gioObTitle").textContent = step.title;
+    $("gioObTitle").textContent = t(step.titleKey);
+    const hintText = t(step.hintKey, "");
     const hint = $("gioObHint");
-    hint.textContent = step.hint || "";
-    hint.hidden = !step.hint;
+    hint.textContent = hintText;
+    hint.hidden = !hintText;
     $("gioObCounter").textContent = (state.step + 1) + " / " + total;
     $("gioObBack").disabled = state.step === 0;
-    $("gioObNext").textContent = state.step === total - 1 ? "كمّل ✓" : "التالي";
+    $("gioObBack").textContent = t("onb.back");
+    $("gioObNext").textContent = state.step === total - 1 ? t("onb.finish") : t("onb.next");
+    $("gioObSkip").textContent = t("onboarding.skip");
 
     const body = $("gioObBody");
     body.innerHTML = "";
     const wrap = document.createElement("div");
     wrap.className = "gio-choices";
 
-    step.options.forEach(([value, label]) => {
+    step.options.forEach(([value, labelKey]) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "gio-choice";
-      btn.textContent = label;
+      btn.dataset.value = value;
+      btn.textContent = t(labelKey, value);
       const current = state.answers[step.key];
       const selected = step.type === "multi"
         ? Array.isArray(current) && current.indexOf(value) >= 0
@@ -281,13 +368,13 @@
     try {
       const res = await api("/api/onboarding/submit", { method: "POST", body: payload });
       if (!res.ok) {
-        toast(res.data.error || "ما قدرناش نسجّلو الاختيارات");
+        toast(res.data.error || t("status.error"));
         return;
       }
       state.profile = res.data.profile;
       show("gioOnboarding", false);
       const persona = res.data.persona || {};
-      toast("تمّ ✓ " + (persona.label || "الشخصية") + " — " + (persona.mode || ""));
+      toast("✓ " + (persona.label || t("status.ready")) + " — " + (persona.mode || ""));
       finishBoot();
     } finally {
       $("gioObNext").disabled = false;
@@ -319,12 +406,12 @@
     const list = $("gioProjectList");
     list.innerHTML = "";
     if (!res.ok) {
-      list.innerHTML = '<p class="gio-muted gio-small">' + (res.data.error || "ما قدرناش نقراو المشاريع") + "</p>";
+      list.innerHTML = '<p class="gio-muted gio-small">' + (res.data.error || t("studio.load_error")) + "</p>";
       return;
     }
     state.projects = res.data.projects || [];
     if (state.projects.length === 0) {
-      list.innerHTML = '<p class="gio-muted gio-small">ما فمّاش مشاريع. اعمل واحد جديد.</p>';
+      list.innerHTML = '<p class="gio-muted gio-small">' + t("studio.no_projects") + "</p>";
       return;
     }
     state.projects.forEach((project) => {
@@ -340,7 +427,7 @@
 
   async function selectProject(id) {
     const res = await api("/api/projects/" + id);
-    if (!res.ok) { toast(res.data.error || "المشروع ما موجودش"); return; }
+    if (!res.ok) { toast(res.data.error || t("status.error")); return; }
     state.current = res.data.project;
     $("gioProjectEmpty").hidden = true;
     $("gioProjectDetail").hidden = false;
@@ -348,7 +435,7 @@
     $("gioProjectMeta").textContent =
       state.current.template + " • " + state.current.stack +
       (state.current.mobile ? " • mobile" : "") +
-      " • " + (state.current.tasks || []).length + " مهام";
+      " • " + (state.current.tasks || []).length + " " + t("studio.tasks");
     $("gioMissionLog").hidden = true;
     await loadFiles();
     $("gioPreview").src = "/api/projects/" + id + "/preview?" + Date.now();
@@ -387,21 +474,21 @@
     button.disabled = true;
     const log = $("gioMissionLog");
     log.hidden = false;
-    log.textContent = "جاري تشغيل المهمة: PM → Architect → Coder → QA …";
+    log.textContent = t("studio.running");
     try {
       const res = await api("/api/projects/" + state.current.id + "/mission", {
         method: "POST",
         body: { idea: state.current.idea || "" },
       });
       if (!res.ok) {
-        log.textContent = "خطأ: " + (res.data.error || res.status);
+        log.textContent = t("status.error") + ": " + (res.data.error || res.status);
         return;
       }
       const lines = (res.data.tasks || []).map(
         (task) => "[" + task.stage + "] " + task.status + " — " + (task.artifact || "")
       );
       lines.push("");
-      lines.push("التالي: " + (res.data.next || "—"));
+      lines.push(t("studio.next") + ": " + (res.data.next || "—"));
       log.textContent = lines.join("\n");
       await selectProject(state.current.id);
     } finally {
@@ -422,7 +509,7 @@
         body: { name: name, template: template, idea: idea },
       });
       if (!res.ok) {
-        toast(res.data.error || "ما قدرناش نعملو المشروع");
+        toast(res.data.error || t("status.error"));
         return;
       }
       show("gioNewProjectForm", false);
@@ -430,7 +517,7 @@
       $("gioNewIdea").value = "";
       await loadProjects();
       await selectProject(res.data.project.id);
-      toast("المشروع تعمل ✓");
+      toast(t("studio.created"));
     } finally {
       submit.disabled = false;
     }
@@ -441,16 +528,24 @@
     // نوقّفو تحديث v8 القديم حتى نتأكدو من الجلسة
     window.__gioAuthed = false;
 
+    await loadI18n();
+
     const status = await api("/api/auth/status");
     if (!status.ok) {
-      showAuth("login", "ما قدرناش نتواصلو مع الـ API.");
+      showAuth("login", t("auth.hint.no_api"));
       return;
     }
     state.bootstrapped = !!status.data.bootstrapped;
 
+    // لغة الحساب تخدم كان ما فمّاش اختيار محفوظ في المتصفّح
+    const profileLocale = status.data.profile && status.data.profile.locale;
+    if (!storedLocale() && profileLocale && profileLocale !== i18n.locale) {
+      await setLocale(profileLocale);
+    }
+
     if (!status.data.authenticated) {
       showAuth(state.bootstrapped ? "login" : "bootstrap",
-        state.bootstrapped ? "" : "الحساب الأوّل يولّي owner.");
+        state.bootstrapped ? "" : t("auth.hint.owner"));
       return;
     }
 
@@ -510,4 +605,8 @@
 
     boot();
   });
+
+  // للتجربة/التصحيح: الواجهة تعرض حالتها، والاختبارات تقراها
+  window.__gioI18n = i18n;
+  window.__gioSetLocale = setLocale;
 })();
