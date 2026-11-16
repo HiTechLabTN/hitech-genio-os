@@ -11,9 +11,26 @@
 git clone https://github.com/HiTechLabTN/hitech-genio-os.git
 cd hitech-genio-os
 make install      # venv + المتطلّبات
-make test         # 89 اختبار
+make test         # 139 اختبار
 make run          # http://127.0.0.1:8099
 ```
+
+### 🐍 وين يتخلق الـ venv؟
+
+`make install` يختار المسار وحدو (`scripts/venv_path.sh`):
+
+| الحالة | المسار |
+|---|---|
+| نظام ملفات عادي | `./venv` داخل الريبو |
+| الريبو على **sshfs / noexec** | `$XDG_DATA_HOME/genio-os/venv` ولا `~/.local/share/genio-os/venv` |
+| `GENIO_VENV=/مسار make install` | المسار اللي تعطيه إنت |
+
+علاش: الـ venv فيه ملفات `.so` (psutil، pydantic-core…) و`noexec` يمنع تحميلهم،
+فتطلع `failed to map segment from shared object`. `make venv` يطبع المسار المستعمل،
+و`make test` يستعملو تلقائيًا — ما تحتاجش تكتب `./venv/bin/python` بيدك.
+
+إذا `python3 -m venv` فشل (Debian بلا `python3-venv`)، السكريبت يعمل `--without-pip`
+ويجيب pip من النظام — نفس اللي يعملو الإنسطالور.
 
 أو بالـ Docker:
 
@@ -52,7 +69,8 @@ docker compose up -d
   mission بـ DAG (PM → Architect → Coder → QA)، preview، ZIP، وdeploy plans.
 - **Skill packs** بـ **eval gate**: ما يتفعّلش pack إلا إذا عدّى الـ evals.
 - **مؤسسات**: أعضاء، أدوار، تقرير استعمال، **CSV audit**.
-- **i18n/RTL**: `ar-TN`, `ar`, `fr`, `en` — الاتجاه data ماشي guess.
+- **i18n/RTL**: `ar-TN`, `ar`, `fr`, `en` — الاتجاه data ماشي guess، والواجهة
+  (login / onboarding / studio) تخدم بيهم: switcher + `dir` + نصوص من `/api/i18n`.
 
 ---
 
