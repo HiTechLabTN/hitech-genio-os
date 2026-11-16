@@ -209,6 +209,14 @@ async def _persona_context(request: Request):
     return persona, plan
 
 
+# SSE عبر Cloudflare/nginx: بلا buffering و بلا cache، وإلا الـ streaming يبان واقف
+SSE_HEADERS = {
+    "Cache-Control": "no-cache, no-transform",
+    "X-Accel-Buffering": "no",
+    "Connection": "keep-alive",
+}
+
+
 @app.post("/api/task/stream")
 async def stream_task(req: TaskRequest, request: Request):
     persona, plan = await _persona_context(request)
@@ -220,7 +228,7 @@ async def stream_task(req: TaskRequest, request: Request):
                 {"event": "error", "agent": req.agent_id, "error": message}, ensure_ascii=False
             ) + "\n\n"
 
-        return StreamingResponse(_blocked(), media_type="text/event-stream")
+        return StreamingResponse(_blocked(), media_type="text/event-stream", headers=SSE_HEADERS)
     return StreamingResponse(
         engine.stream_task_events(
             req.agent_id,
@@ -230,7 +238,8 @@ async def stream_task(req: TaskRequest, request: Request):
             model_plan=plan,
             allow_shell=_shell_policy(persona),
         ),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        headers=SSE_HEADERS,
     )
 
 

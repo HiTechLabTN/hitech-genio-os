@@ -148,6 +148,11 @@ def test_stream_reports_the_offline_plan_as_an_sse_error(loopback, server, monke
     assert payload["event"] == "error"
     assert "Ollama" in payload["error"]
 
+    # ورى Cloudflare/nginx الـ SSE لازم يبقى بلا buffering و بلا cache
+    headers = response.headers
+    assert "no-cache" in headers["cache-control"]
+    assert headers["x-accel-buffering"] == "no"
+
 
 def test_persona_prompt_reaches_the_model_payload(loopback, server, monkeypatch):
     """نبرة الشخصية لازم توصل للـ system prompt، ماشي غير للموديل."""

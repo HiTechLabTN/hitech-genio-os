@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
 from core import auth as auth_core
+from core import proxy
 from core.auth import CSRF_HEADER, SESSION_COOKIE, AuthError
 from core.db import get_db
 
@@ -44,7 +45,8 @@ class SessionRevokeRequest(BaseModel):
 
 
 def _client_ip(request: Request) -> str:
-    return request.client.host if request.client else ""
+    # عبر Cloudflare/nginx الـ peer هو 127.0.0.1 — ناخذو IP الحقيقي
+    return proxy.client_ip(request)
 
 
 class CreateUserRequest(BaseModel):
@@ -108,7 +110,7 @@ def _set_session(response: Response, session: Dict[str, Any], request: Request) 
         max_age=int(session["expires_at"] - time.time()),
         httponly=True,
         samesite="lax",
-        secure=request.url.scheme == "https",
+        secure=proxy.is_https(request),
         path="/",
     )
 

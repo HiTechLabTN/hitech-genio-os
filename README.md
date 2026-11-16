@@ -12,9 +12,17 @@ git clone https://github.com/HiTechLabTN/hitech-genio-os.git
 cd hitech-genio-os
 make install      # venv + المتطلّبات
 make hooks        # تفعيل .githooks/commit-msg
-make test         # 154 اختبار
+make test         # 168 اختبار
 make run          # http://127.0.0.1:8099
 ```
+
+### 🛰️ النشر على go.hitech.tn (سيرفر TN: `/data/genio-os`)
+
+الكود و البيانات في `/data/genio-os`، و المنصّة ورى **Cloudflare Access**:
+خطوات التثبيت، الـ systemd unit، الـ nginx/cloudflared، و أوامر التحقّق في
+[`deployment/README.md`](deployment/README.md). المنصّة تقرا `CF-Connecting-IP`
+و `X-Forwarded-Proto` غير كي الطلب جاي من بروكسي محلي، فـ IP الزائر و الكوكي
+`Secure` و SSE كاملين يخدمو ورى Cloudflare.
 
 ### 🔒 حماية هوية الكوميتات
 
