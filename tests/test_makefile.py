@@ -54,6 +54,7 @@ def test_venv_fallback_script_handles_missing_ensurepip():
 
 
 def test_readme_documents_the_venue_and_the_count():
-    assert "134" in README
+    # الرقم لازم يطابق اللي يعطيه `make test` فعليًا
+    assert "139" in README
     assert "noexec" in README
     assert "make venv" in README
