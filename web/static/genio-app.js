@@ -36,6 +36,15 @@
     return value === undefined || value === "" ? (fallback || key) : value;
   }
 
+  // tf("v8.status.report", {agent: "Dev-Lead"}) — {placeholders} في الكاتالوغ
+  function tf(key, vars) {
+    let out = t(key);
+    Object.keys(vars || {}).forEach((name) => {
+      out = out.split("{" + name + "}").join(String(vars[name]));
+    });
+    return out;
+  }
+
   function applyLocale() {
     const root = document.documentElement;
     root.setAttribute("dir", i18n.dir);
@@ -44,6 +53,12 @@
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       el.textContent = t(el.getAttribute("data-i18n"), el.textContent);
     });
+    // نصوص فيها HTML (bold/br) — الكاتالوغ مصدر موثوق، ماشي إدخال مستعمل
+    document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+      el.innerHTML = t(el.getAttribute("data-i18n-html"), el.innerHTML);
+    });
+    // رسائل كتبها JS (حالة الـ HQ...) تعاود تتولّد من الكاتالوغ
+    if (typeof window.__gioOnLocale === "function") window.__gioOnLocale();
     document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
       const key = el.getAttribute("data-i18n-placeholder");
       el.setAttribute("placeholder", t(key, el.getAttribute("placeholder") || ""));
@@ -609,4 +624,7 @@
   // للتجربة/التصحيح: الواجهة تعرض حالتها، والاختبارات تقراها
   window.__gioI18n = i18n;
   window.__gioSetLocale = setLocale;
+  // الـ v8 inline script (office 3D) ياخو النصوص من هنا
+  window.gioT = t;
+  window.gioTF = tf;
 })();

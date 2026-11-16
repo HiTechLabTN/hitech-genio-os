@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 
 from core import i18n
@@ -144,9 +145,78 @@ def test_v8_placeholders_are_translated_too():
         assert f'data-i18n-placeholder="{key}"' in INDEX_HTML, key
 
 
+GT_KEY = re.compile(r"""\bgt\(\s*["']([a-zA-Z0-9_.]+)["']""")
+ARABIC = re.compile(r"[\u0600-\u06FF]")
+
+
+def _inline_v8_script() -> str:
+    """السكريبت الداخلي متاع v8 (المحرك 3D + الـ chat + الإدارة)."""
+    start = INDEX_HTML.index("const HQ_LAYOUT")
+    return INDEX_HTML[start:]
+
+
+def _strip_js_comments(source: str) -> str:
+    source = re.sub(r"/\*.*?\*/", "", source, flags=re.S)
+    return re.sub(r"//[^\n]*", "", source)
+
+
+def _tab_markup() -> str:
+    """HTML ساكن متاع الـ 6 tabs (بلا السكريبت و بلا الـ overlays)."""
+    return INDEX_HTML[INDEX_HTML.index('id="tab-office"') : INDEX_HTML.index("const HQ_LAYOUT")]
+
+
+def test_every_dynamic_v8_string_comes_from_the_catalogue():
+    """كل نص ديناميكي في التابات (غرف، حالات، رسائل) يتحلّ بـ gt(key)."""
+    keys = set(GT_KEY.findall(INDEX_HTML))
+    assert len(keys) >= 25, sorted(keys)
+    missing = sorted(key for key in keys if key not in i18n.STRINGS)
+    assert missing == [], f"gt() ب keys ما فمّاش في الكاتالوغ: {missing}"
+
+
+def test_no_arabic_literal_left_in_the_v8_script():
+    """ما فمّاش نص عربي صلب في كود v8 — العربية تجي من الكاتالوغ."""
+    code = _strip_js_comments(_inline_v8_script())
+    leftovers = sorted({line.strip() for line in code.splitlines() if ARABIC.search(line)})
+    assert leftovers == [], "نص عربي صلب باقي في السكريبت: " + str(leftovers[:5])
+
+
+class _ArabicTextFinder(HTMLParser):
+    """يلقى النصوص العربية اللي ما هيش داخل عنصر مربوط بمفتاح."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.stack: list[bool] = []  # لكل عنصر: هل عندو data-i18n*؟
+        self.unwired: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        names = dict(attrs)
+        wired = any(name.startswith("data-i18n") for name in names)
+        if tag not in ("br", "img", "input", "meta", "link", "hr"):
+            self.stack.append(wired)
+        elif ARABIC.search(names.get("placeholder", "")) and not wired:
+            self.unwired.append(f"placeholder غير مربوط: {names.get('placeholder')}")
+
+    def handle_endtag(self, tag):
+        if tag not in ("br", "img", "input", "meta", "link", "hr") and self.stack:
+            self.stack.pop()
+
+    def handle_data(self, data):
+        if ARABIC.search(data) and not any(self.stack):
+            self.unwired.append(data.strip())
+
+
+def test_every_arabic_node_in_the_tabs_is_wired_to_a_key():
+    """ما فمّاش نص عربي في التابات بلا مفتاح (نص، HTML، ولا placeholder)."""
+    finder = _ArabicTextFinder()
+    finder.feed(_tab_markup())
+    assert finder.unwired == [], "عناصر عربية بلا مفتاح: " + str(finder.unwired[:5])
+
+
+
+
 def test_no_v8_key_missing_in_any_locale():
     v8_keys = [key for key in i18n.STRINGS if key.startswith("v8.")]
-    assert len(v8_keys) >= 40
+    assert len(v8_keys) >= 80
     missing = {
         key: [code for code, value in i18n.STRINGS[key].items() if not (value or "").strip()]
         for key in v8_keys

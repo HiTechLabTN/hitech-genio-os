@@ -250,6 +250,108 @@ _UI_STRINGS.update({
     "v8.admin.update": ("⚡ تحديث", "⚡ تحديث", "⚡ Mettre à jour", "⚡ Update"),
 })
 
+_UI_STRINGS.update({
+    # --- v8 tabs: محتوى ديناميكي (أسماء الغرف، حالات الوكلاء، رسائل الحالة) ---
+    "v8.ide.preview_empty": ("اختر ملفاً للمعاينة أو التعديل", "اختر ملفاً للمعاينة", "Choisissez un fichier à prévisualiser", "Pick a file to preview or edit"),
+    "v8.status.idle": (
+        "👑 <b>Genio-Rayes (CEO):</b> في جناح القيادة، يراقب جميع الأقسام عبر الممر الذهبي...",
+        "👑 <b>Genio-Rayes (CEO):</b> في جناح القيادة يراقب الأقسام...",
+        "👑 <b>Genio-Rayes (CEO):</b> depuis la direction, surveille tous les départements…",
+        "👑 <b>Genio-Rayes (CEO):</b> watching every department from the executive suite…",
+    ),
+    "v8.office.kawaliss_seed": (
+        "[HQ v8.0] الخريطة المعمارية جاهزة والوكلاء في مكاتبهم...",
+        "[HQ v8.0] الخريطة جاهزة والوكلاء في مكاتبهم...",
+        "[HQ v8.0] Plan prêt, les agents sont à leurs bureaux…",
+        "[HQ v8.0] Floorplan ready, agents at their desks…",
+    ),
+    "v8.room.ceo": ("CEO SUITE • المدير التنفيذي", "CEO SUITE • المدير التنفيذي", "CEO SUITE • Direction", "CEO SUITE • Executive"),
+    "v8.room.hr": ("HR & TALENT • الموارد البشرية", "HR & TALENT • الموارد البشرية", "RH & TALENTS", "HR & TALENT"),
+    "v8.room.infra": ("INFRA & DEVOPS • السيرفرات", "INFRA & DEVOPS • السيرفرات", "INFRA & DEVOPS • Serveurs", "INFRA & DEVOPS • Servers"),
+    "v8.room.boardroom": ("SUNDAY BOARDROOM • قاعة الاجتماعات", "SUNDAY BOARDROOM • قاعة الاجتماعات", "SALLE DU CONSEIL", "BOARDROOM"),
+    "v8.room.dev": ("DEV STUDIO • استوديو البرمجة", "DEV STUDIO • استوديو البرمجة", "STUDIO DEV • Développement", "DEV STUDIO • Engineering"),
+    "v8.room.vision": ("3D & MEDIA • التصميم والمونتاج", "3D & MEDIA • التصميم والمونتاج", "3D & MÉDIA • Design", "3D & MEDIA • Design"),
+    "v8.room.library": ("GITHUB SKILL LIBRARY • مكتبة المهارات", "GITHUB SKILL LIBRARY • مكتبة المهارات", "BIBLIOTHÈQUE GITHUB", "GITHUB SKILL LIBRARY"),
+    "v8.room.security": ("QA & SECURITY • الفحص والأمان", "QA & SECURITY • الفحص والأمان", "QA & SÉCURITÉ", "QA & SECURITY"),
+    "v8.state.idle": ("جاهز للعمل • IDLE", "جاهز للعمل • IDLE", "Prêt • IDLE", "Ready • IDLE"),
+    "v8.state.walking": ("يتحرك عبر الممر...", "يتحرك عبر الممر...", "Se déplace dans le couloir…", "Walking the hallway…"),
+    "v8.state.returning": ("يعود إلى مكتبه...", "يعود إلى مكتبه...", "Retourne à son bureau…", "Returning to desk…"),
+    "v8.state.office": ("في مكتبه • جاهز", "في مكتبه • جاهز", "À son bureau • prêt", "At desk • ready"),
+    "v8.state.planning": ("يخطط ويوزع المهام...", "يخطط ويوزع المهام...", "Planifie et distribue…", "Planning and dispatching…"),
+    "v8.state.coding": ("يكتب الكود وينفذ...", "يكتب الكود وينفذ...", "Écrit et exécute le code…", "Writing and running code…"),
+    "v8.state.on_task": ("يشتغل على مهمته...", "يشتغل على مهمته...", "Travaille sur sa tâche…", "Working on the task…"),
+    "v8.state.watching": ("يراقب تقدم الفريق", "يراقب تقدم الفريق", "Surveille l'équipe", "Watching the team"),
+    "v8.act.call_bubble": ("يرفع السماعة ويوزع المهام!", "يرفع السماعة ويوزع المهام!", "Décroche et distribue les tâches !", "On the phone, dispatching!"),
+    "v8.act.report_bubble": ("يسلّم التقرير للمدير!", "يسلّم التقرير للمدير!", "Remet le rapport au CEO !", "Handing the report to the CEO!"),
+    "v8.act.meeting_bubble": ("في اجتماع الفريق", "في اجتماع الفريق", "En réunion d'équipe", "In the team meeting"),
+    "v8.act.study_github": ("يدرس مهارة في GitHub", "يدرس مهارة في GitHub", "Étudie une compétence GitHub", "Studying a GitHub skill"),
+    "v8.act.study_security": ("يحلل كود حماية جديد", "يحلل كود حماية جديد", "Analyse du code de sécurité", "Reviewing new security code"),
+    "v8.status.call": (
+        "📞 <b>Genio-Rayes (CEO):</b> يرفع السماعة الآن ويوزع المهام على الأقسام عبر الشبكة...",
+        "📞 <b>Genio-Rayes (CEO):</b> يرفع السماعة ويوزع المهام...",
+        "📞 <b>Genio-Rayes (CEO):</b> décroche et distribue les tâches…",
+        "📞 <b>Genio-Rayes (CEO):</b> picks up and dispatches tasks…",
+    ),
+    "v8.status.report": (
+        "🚶‍♂️ <b>{agent}:</b> أنهى شغله ويتوجه الآن عبر الممر الذهبي لتسليم التقرير للمدير التنفيذي!",
+        "🚶‍♂️ <b>{agent}:</b> أنهى شغله ويتوجه لتسليم التقرير!",
+        "🚶‍♂️ <b>{agent}:</b> a terminé et apporte son rapport au CEO !",
+        "🚶‍♂️ <b>{agent}:</b> finished and is walking the golden hallway to deliver the report!",
+    ),
+    "v8.status.meeting": (
+        "🤝 <b>اجتماع الشركة الأسبوعي:</b> جميع الموظفين يتجمعون في قاعة الاجتماعات لمراجعة الأداء!",
+        "🤝 <b>اجتماع الشركة:</b> الفريق يتجمع في قاعة الاجتماعات!",
+        "🤝 <b>Réunion d'entreprise :</b> toute l'équipe se retrouve en salle du conseil !",
+        "🤝 <b>Company meeting:</b> the whole team gathers in the boardroom!",
+    ),
+    "v8.status.study": (
+        "📚 <b>ساعة التطوير الذاتي:</b> المطورون في مكتبة GitHub للبحث عن مهارات جديدة!",
+        "📚 <b>ساعة التطوير:</b> المطورون في مكتبة GitHub!",
+        "📚 <b>Heure d'apprentissage :</b> les devs explorent la bibliothèque GitHub !",
+        "📚 <b>Self-learning hour:</b> the devs are in the GitHub library!",
+    ),
+    "v8.status.working": (
+        "⚡ <b>{agent}:</b> يشتغل الآن بشكل حي على المهمة...",
+        "⚡ <b>{agent}:</b> يشتغل الآن على المهمة...",
+        "⚡ <b>{agent}:</b> travaille en direct sur la mission…",
+        "⚡ <b>{agent}:</b> is live on the mission…",
+    ),
+    "v8.live.working": ("⏳ يشتغل...", "⏳ يشتغل...", "⏳ En cours…", "⏳ Working…"),
+    "v8.live.done": ("✅ تم ({secs}s)", "✅ تم ({secs}s)", "✅ Terminé ({secs}s)", "✅ Done ({secs}s)"),
+    "v8.live.routed": ("تم التوجيه بنجاح", "تم التوجيه بنجاح", "Routé avec succès", "Routed successfully"),
+    "v8.live.conn_error": ("خطأ في الاتصال", "خطأ في الاتصال", "Erreur de connexion", "Connection error"),
+    "v8.chat.owner": ("🧑‍💻 عزمي (المالك)", "🧑‍💻 عزمي (المالك)", "🧑‍💻 Azmi (propriétaire)", "🧑‍💻 Azmi (owner)"),
+    "v8.chat.swarm": ("🐝 مهمة الشركة المتكاملة", "🐝 مهمة الشركة المتكاملة", "🐝 Mission complète", "🐝 Full company mission"),
+    "v8.admin.saved": ("✅ تم الحفظ!", "✅ تم الحفظ!", "✅ Enregistré !", "✅ Saved!"),
+    "v8.admin.pulling": ("⏳ جاري السحب...", "⏳ جاري السحب...", "⏳ Téléchargement…", "⏳ Pulling…"),
+    "v8.admin.pulled": ("✅ اكتمل السحب!", "✅ اكتمل السحب!", "✅ Téléchargé !", "✅ Pull complete!"),
+    "v8.admin.error": ("❌ خطأ", "❌ خطأ", "❌ Erreur", "❌ Error"),
+    "v8.admin.ready": ("جاهز...", "جاهز...", "Prêt…", "Ready…"),
+    "v8.term.ready": ("hitech@tn:/data/genio-os$ # جاهز...", "hitech@tn:/data/genio-os$ # جاهز...", "hitech@tn:/data/genio-os$ # prêt…", "hitech@tn:/data/genio-os$ # ready…"),
+    "v8.office.welcome": (
+        "👑 <b>مرحبا يا ريس عزمي في الإصدار الثامن Genio OS v8.0!</b><br>"
+        "• <b>خريطة المكاتب:</b> جناح المدير في الأعلى، الممر الذهبي في الوسط، 5 مكاتب للأقسام، "
+        "قاعة الاجتماعات ومكتبة GitHub.<br>"
+        "• جرب أزرار المحاكاة فوق الخريطة أو أرسل مهمة حقيقية من الأسفل!",
+        "👑 <b>مرحبا بك في Genio OS v8.0!</b><br>• خريطة المكاتب، قاعة الاجتماعات، ومكتبة GitHub.<br>• جرب أزرار المحاكاة ولا أرسل مهمة.",
+        "👑 <b>Bienvenue dans Genio OS v8.0 !</b><br>"
+        "• <b>Carte des bureaux :</b> direction en haut, couloir doré au centre, 5 bureaux, "
+        "salle du conseil et bibliothèque GitHub.<br>"
+        "• Essayez les boutons de simulation ou envoyez une vraie mission.",
+        "👑 <b>Welcome to Genio OS v8.0!</b><br>"
+        "• <b>Office map:</b> executive suite up top, golden hallway in the middle, 5 department offices, "
+        "the boardroom and the GitHub library.<br>"
+        "• Try the simulation buttons or send a real mission below.",
+    ),
+    "studio.field.name_ph": ("متجر صغير", "متجر صغير", "Petite boutique", "Small shop"),
+    "studio.field.idea_ph": (
+        "نحب تطبيق متجر إلكتروني صغير، فيه منتجات وسلّة ودفع عند الاستلام",
+        "أريد تطبيق متجر إلكتروني صغير: منتجات، سلة، ودفع عند الاستلام",
+        "Je veux une petite boutique en ligne : produits, panier, paiement à la livraison",
+        "I want a small online shop: products, cart, cash on delivery",
+    ),
+})
+
 for _key, (_tn, _ar, _fr, _en) in _UI_STRINGS.items():
     STRINGS[_key] = {"ar-TN": _tn, "ar": _ar, "fr": _fr, "en": _en}
 

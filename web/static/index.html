@@ -240,9 +240,9 @@
       <h2 data-i18n="studio.modal.title">مشروع جديد</h2>
       <p class="gio-muted gio-small" data-i18n="studio.modal.hint">اكتب الفكرة بالدارجة، اختار القالب، وبدا.</p>
       <form id="gioNewProjectForm2">
-        <label><span data-i18n="studio.field.name">الاسم</span><input id="gioNewName" class="gio-input" placeholder="متجر صغير"></label>
+        <label><span data-i18n="studio.field.name">الاسم</span><input id="gioNewName" class="gio-input" placeholder="متجر صغير" data-i18n-placeholder="studio.field.name_ph"></label>
         <label><span data-i18n="studio.field.template">القالب</span><select id="gioTemplate" class="gio-select"></select></label>
-        <label><span data-i18n="studio.field.idea">الفكرة</span><textarea id="gioNewIdea" class="gio-textarea" placeholder="نحب تطبيق متجر إلكتروني صغير، فيه منتجات وسلّة ودفع عند الاستلام"></textarea></label>
+        <label><span data-i18n="studio.field.idea">الفكرة</span><textarea id="gioNewIdea" class="gio-textarea" placeholder="نحب تطبيق متجر إلكتروني صغير، فيه منتجات وسلّة ودفع عند الاستلام" data-i18n-placeholder="studio.field.idea_ph"></textarea></label>
         <div class="gio-actions end">
           <button id="gioNewCancel" class="gio-btn ghost" type="button" data-i18n="action.cancel">ألغي</button>
           <button id="gioCreateSubmit" class="gio-btn primary" type="submit" data-i18n="studio.create">اعمل المشروع</button>
@@ -299,7 +299,7 @@
     </div>
 
     <div class="hq-bottom-hud">
-      <span id="hqStatusText">👑 <b>Genio-Rayes (CEO):</b> في جناح القيادة، يراقب جميع الأقسام عبر الممر الذهبي...</span>
+      <span id="hqStatusText" data-i18n-html="v8.status.idle">👑 <b>Genio-Rayes (CEO):</b> في جناح القيادة، يراقب جميع الأقسام عبر الممر الذهبي...</span>
       <span data-i18n="v8.office.hint_controls" style="color:var(--cyan);font-family:monospace;">اسحب لتدوير الكاميرا • عجلة الماوس للزوم</span>
     </div>
   </div>
@@ -312,7 +312,7 @@
       </div>
       <div id="agentsContainer" style="display:flex;flex-direction:column;gap:5px;"></div>
       <div class="panel-title" style="margin-top:4px;" data-i18n="v8.office.radar">📡 رادار الكواليس الحي</div>
-      <div id="kawalissBox" class="live-kawaliss">[HQ v8.0] الخريطة المعمارية جاهزة والوكلاء في مكاتبهم...</div>
+      <div id="kawalissBox" class="live-kawaliss" data-i18n="v8.office.kawaliss_seed">[HQ v8.0] الخريطة المعمارية جاهزة والوكلاء في مكاتبهم...</div>
     </div>
 
     <div class="panel">
@@ -321,10 +321,10 @@
         <button class="btn purple" style="padding:4px 10px;font-size:0.72rem;" onclick="runSwarmLive()" data-i18n="v8.office.swarm">🐝 إطلاق مهمة السرب الكاملة</button>
       </div>
       <div id="chatStream" class="chat-stream">
-        <div class="msg">
+        <div class="msg" data-i18n-html="v8.office.welcome">
           👑 <b>مرحباً يا ريس عزمي في الإصدار المعماري الثامن Genio OS v8.0!</b><br>
-          • <b>خريطة المكاتب المتقاطعة:</b> جناح المدير التنفيذي في الأعلى، الممر الذهبي في الوسط، 5 مكاتب للأقسام، بالإضافة إلى <b>قاعة الاجتماعات (Boardroom)</b> و<b>مكتبة GitHub للتطور الذاتي</b>.<br>
-          • جرب أزرار المحاكاة فوق الخريطة (رفع السماعة، اجتماع الفريق، تسليم التقارير) أو أرسل مهمة حقيقية بالأسفل!
+          • <b>خريطة المكاتب المتقاطعة:</b> جناح المدير التنفيذي في الأعلى، الممر الذهبي في الوسط، 5 مكاتب للأقسام.<br>
+          • جرب أزرار المحاكاة فوق الخريطة أو أرسل مهمة حقيقية بالأسفل!
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:stretch;">
@@ -352,7 +352,7 @@
 
     <div class="panel">
       <div class="panel-title">
-        <span id="currentEditPath" style="font-family:monospace;">اختر ملفاً للمعاينة أو التعديل</span>
+        <span id="currentEditPath" style="font-family:monospace;" data-i18n="v8.ide.preview_empty">اختر ملفاً للمعاينة أو التعديل</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn secondary" onclick="togglePreviewMode()" data-i18n="v8.ide.preview">👁️ معاينة حية / كود</button>
           <a id="downloadFileBtn" class="btn green" href="#" target="_blank" style="display:none;" data-i18n="v8.ide.download">⬇️ تحميل الملف</a>
@@ -380,7 +380,7 @@
 <section id="tab-term" class="studio-section">
   <div class="panel">
     <div class="panel-title"><span data-i18n="v8.term.title">🖥️ طرفية السيرفر المباشرة (tn)</span></div>
-    <div id="termOutput" class="terminal-out">hitech@tn:/data/genio-os$ # جاهز...</div>
+    <div id="termOutput" class="terminal-out" data-i18n="v8.term.ready">hitech@tn:/data/genio-os$ # جاهز...</div>
     <div style="display:flex;gap:8px;">
       <input id="shellInput" type="text" dir="ltr" placeholder="أمر لينكس..." data-i18n-placeholder="v8.term.ph" onkeydown="if(event.key==='Enter') executeShell()">
       <button class="btn" onclick="executeShell()" data-i18n="v8.term.run">▶️ تنفيذ</button>
@@ -430,7 +430,7 @@
         <button class="btn secondary" onclick="checkGitHubUpdates()" data-i18n="v8.admin.check">🔍 فحص</button>
         <button class="btn" onclick="applyGitHubUpdate()" data-i18n="v8.admin.update">⚡ تحديث</button>
       </div>
-      <pre id="updateBox" style="font-size:0.72rem;background:#000;padding:8px;border-radius:6px;direction:ltr;text-align:left;max-height:140px;overflow:auto;">جاهز...</pre>
+      <pre id="updateBox" style="font-size:0.72rem;background:#000;padding:8px;border-radius:6px;direction:ltr;text-align:left;max-height:140px;overflow:auto;" data-i18n="v8.admin.ready">جاهز...</pre>
     </div>
   </div>
 </section>
@@ -439,6 +439,18 @@
 let selectedAgent = "Genio-Rayes";
 let activeFilePath = "";
 let previewMode = true;
+
+// نصوص v8 من كاتالوغ /api/i18n (genio-app.js يعرّضها على window)
+function gt(key, vars) {
+  const fn = window.gioTF || window.gioT;
+  return typeof fn === "function" ? fn(key, vars) : key;
+}
+
+// بعد تبديل اللغة، الرسائل الديناميكية اللي كتبها JS ترجع للكاتالوغ
+window.__gioOnLocale = function () {
+  const status = document.getElementById("hqStatusText");
+  if (status) status.innerHTML = gt("v8.status.idle");
+};
 
 function openTab(tabId, btn) {
   document.querySelectorAll(".studio-section").forEach(s => s.classList.remove("active"));
@@ -479,17 +491,17 @@ let isDragging = false, prevX = 0, prevY = 0;
 // Architectural floorplan: 8 rooms arranged around the Golden Central Corridor
 const HQ_LAYOUT = [
   // Top Center: CEO Executive Suite
-  {id: "Genio-Rayes", title: "CEO SUITE • المدير التنفيذي", role: "Genio-Rayes (Lv.10)", x: 0, z: -11, w: 10, d: 6.5, floorHex: 0x172554, neonHex: 0x00f2fe, doorSide: "south", isAgent: true, skin: 0xfde047},
+  {id: "Genio-Rayes", titleKey: "v8.room.ceo", role: "Genio-Rayes (Lv.10)", x: 0, z: -11, w: 10, d: 6.5, floorHex: 0x172554, neonHex: 0x00f2fe, doorSide: "south", isAgent: true, skin: 0xfde047},
   // Left Wing
-  {id: "HR-Director", title: "HR & TALENT • الموارد البشرية", role: "HR-Director (Lv.7)", x: -11.5, z: -7.5, w: 8, d: 6, floorHex: 0x2e1065, neonHex: 0xa855f7, doorSide: "east", isAgent: true, skin: 0xfcd34d},
-  {id: "Infra-Ops", title: "INFRA & DEVOPS • السيرفرات", role: "Infra-Ops (Lv.8)", x: -11.5, z: 0, w: 8, d: 6, floorHex: 0x451a03, neonHex: 0xf59e0b, doorSide: "east", isAgent: true, skin: 0xfde047},
-  {id: "Boardroom", title: "SUNDAY BOARDROOM • قاعة الاجتماعات", role: "Meeting Hall", x: -11.5, z: 7.5, w: 8, d: 6, floorHex: 0x0f172a, neonHex: 0x38bdf8, doorSide: "east", isAgent: false},
+  {id: "HR-Director", titleKey: "v8.room.hr", role: "HR-Director (Lv.7)", x: -11.5, z: -7.5, w: 8, d: 6, floorHex: 0x2e1065, neonHex: 0xa855f7, doorSide: "east", isAgent: true, skin: 0xfcd34d},
+  {id: "Infra-Ops", titleKey: "v8.room.infra", role: "Infra-Ops (Lv.8)", x: -11.5, z: 0, w: 8, d: 6, floorHex: 0x451a03, neonHex: 0xf59e0b, doorSide: "east", isAgent: true, skin: 0xfde047},
+  {id: "Boardroom", titleKey: "v8.room.boardroom", role: "Meeting Hall", x: -11.5, z: 7.5, w: 8, d: 6, floorHex: 0x0f172a, neonHex: 0x38bdf8, doorSide: "east", isAgent: false},
   // Right Wing
-  {id: "Dev-Lead", title: "DEV STUDIO • استوديو البرمجة", role: "Dev-Lead (Lv.9)", x: 11.5, z: -7.5, w: 8, d: 6, floorHex: 0x1e1b4b, neonHex: 0x3b82f6, doorSide: "west", isAgent: true, skin: 0xfde047},
-  {id: "Vision-UI", title: "3D & MEDIA • التصميم والمونتاج", role: "Vision-UI (Lv.7)", x: 11.5, z: 0, w: 8, d: 6, floorHex: 0x4c0519, neonHex: 0xf43f5e, doorSide: "west", isAgent: true, skin: 0xfecdd3},
-  {id: "Library", title: "GITHUB SKILL LIBRARY • مكتبة المهارات", role: "Self-Learning Lab", x: 11.5, z: 7.5, w: 8, d: 6, floorHex: 0x1e1b4b, neonHex: 0xc084fc, doorSide: "west", isAgent: false},
+  {id: "Dev-Lead", titleKey: "v8.room.dev", role: "Dev-Lead (Lv.9)", x: 11.5, z: -7.5, w: 8, d: 6, floorHex: 0x1e1b4b, neonHex: 0x3b82f6, doorSide: "west", isAgent: true, skin: 0xfde047},
+  {id: "Vision-UI", titleKey: "v8.room.vision", role: "Vision-UI (Lv.7)", x: 11.5, z: 0, w: 8, d: 6, floorHex: 0x4c0519, neonHex: 0xf43f5e, doorSide: "west", isAgent: true, skin: 0xfecdd3},
+  {id: "Library", titleKey: "v8.room.library", role: "Self-Learning Lab", x: 11.5, z: 7.5, w: 8, d: 6, floorHex: 0x1e1b4b, neonHex: 0xc084fc, doorSide: "west", isAgent: false},
   // Bottom Center
-  {id: "QA-Sec", title: "QA & SECURITY • الفحص والأمان", role: "QA-Sec (Lv.8)", x: 0, z: 11, w: 10, d: 6.5, floorHex: 0x064e3b, neonHex: 0x10b981, doorSide: "north", isAgent: true, skin: 0xfde047}
+  {id: "QA-Sec", titleKey: "v8.room.security", role: "QA-Sec (Lv.8)", x: 0, z: 11, w: 10, d: 6.5, floorHex: 0x064e3b, neonHex: 0x10b981, doorSide: "north", isAgent: true, skin: 0xfde047}
 ];
 
 function drawBannerSprite(title, sub, borderHex, wScale = 5.4, hScale = 1.25) {
@@ -731,7 +743,7 @@ function initVoxelHQ() {
 
     // Room Header Banner
     const hexColor = "#" + rm.neonHex.toString(16).padStart(6, "0");
-    const bannerObj = drawBannerSprite(rm.title, rm.role, hexColor, 5.2, 1.2);
+    const bannerObj = drawBannerSprite(gt(rm.titleKey), rm.role, hexColor, 5.2, 1.2);
     bannerObj.sprite.position.set(0, 3.6, -rm.d/2 + 0.4);
     rg.add(bannerObj.sprite);
 
@@ -746,7 +758,7 @@ function initVoxelHQ() {
       charMesh.position.set(homeX, 0.12, homeZ);
 
       // Floating Speech/Emotion Bubble above head
-      const bubbleObj = drawBannerSprite(`😊 ${rm.id}`, "جاهز للعمل • IDLE", hexColor, 3.6, 0.9);
+      const bubbleObj = drawBannerSprite(`😊 ${rm.id}`, gt("v8.state.idle"), hexColor, 3.6, 0.9);
       bubbleObj.sprite.position.set(0, 3.1, 0);
       charMesh.add(bubbleObj.sprite);
 
@@ -856,7 +868,7 @@ function setAgentState(agentId, state, mood, text) {
 function sendAvatarAlongHallway(agentId, destX, destZ, arrivalMood, arrivalText, stayMs = 3500) {
   const av = avatarMap[agentId];
   if(!av) return;
-  setAgentState(agentId, "walking", "🚶‍♂️", "يتحرك عبر الممر...");
+  setAgentState(agentId, "walking", "🚶‍♂️", gt("v8.state.walking"));
   // Path through central hallway (x=0) so avatars never walk through walls
   av.waypoints = [
     {x: 0, z: av.mesh.position.z},
@@ -865,12 +877,12 @@ function sendAvatarAlongHallway(agentId, destX, destZ, arrivalMood, arrivalText,
       setAgentState(agentId, "celebrating", arrivalMood, arrivalText);
       if(stayMs > 0) {
         setTimeout(() => {
-          setAgentState(agentId, "walking", "🚶‍♂️", "يعود إلى مكتبه...");
+          setAgentState(agentId, "walking", "🚶‍♂️", gt("v8.state.returning"));
           av.waypoints = [
             {x: 0, z: destZ},
             {x: 0, z: av.homeZ},
             {x: av.homeX, z: av.homeZ, onArrive: () => {
-              setAgentState(agentId, "idle", "😊", "في مكتبه • جاهز");
+              setAgentState(agentId, "idle", "😊", gt("v8.state.office"));
             }}
           ];
         }, stayMs);
@@ -897,20 +909,20 @@ function spawnLaserSignal(fromId, toId, colorHex = 0x00f2fe) {
 
 // 1. CEO Picks Up the Phone & Dispatches Tasks (Exactly like Nadr.ai video)
 function triggerPhoneDispatch() {
-  setAgentState("Genio-Rayes", "phone", "📞", "يرفع السماعة ويوزع المهام!");
-  document.getElementById("hqStatusText").innerHTML = "📞 <b>Genio-Rayes (CEO):</b> يرفع السماعة الآن ويوزع المهام على الأقسام عبر الشبكة...";
+  setAgentState("Genio-Rayes", "phone", "📞", gt("v8.act.call_bubble"));
+  document.getElementById("hqStatusText").innerHTML = gt("v8.status.call");
   logKawaliss("📞 CEO picked up the phone and dispatched tasks to all departments.");
 
   const targets = ["HR-Director", "Dev-Lead", "Infra-Ops", "QA-Sec", "Vision-UI"];
   targets.forEach((id, i) => {
     setTimeout(() => {
       spawnLaserSignal("Genio-Rayes", id, 0x00f2fe);
-      setAgentState(id, "working", "⚡", "يشتغل على مهمته...");
+      setAgentState(id, "working", "⚡", gt("v8.state.on_task"));
     }, (i + 1) * 350);
   });
 
   setTimeout(() => {
-    setAgentState("Genio-Rayes", "idle", "👑", "يراقب تقدم الفريق");
+    setAgentState("Genio-Rayes", "idle", "👑", gt("v8.state.watching"));
   }, 3500);
 }
 
@@ -918,14 +930,14 @@ function triggerPhoneDispatch() {
 function triggerDeliverReport(agentId = "Dev-Lead") {
   const ceo = avatarMap["Genio-Rayes"];
   if(!ceo) return;
-  document.getElementById("hqStatusText").innerHTML = `🚶‍♂️ <b>${agentId}:</b> أنهى شغله ويتوجه الآن عبر الممر الذهبي لتسليم التقرير للمدير التنفيذي!`;
+  document.getElementById("hqStatusText").innerHTML = gt("v8.status.report", {agent: agentId});
   logKawaliss(`✅ ${agentId} walking to CEO Suite to deliver report.`);
-  sendAvatarAlongHallway(agentId, ceo.homeX, ceo.homeZ + 1.8, "✅", "يسلّم التقرير للمدير!", 2600);
+  sendAvatarAlongHallway(agentId, ceo.homeX, ceo.homeZ + 1.8, "✅", gt("v8.act.report_bubble"), 2600);
 }
 
 // 3. Sunday Boardroom Meeting (All staff walk to Boardroom)
 function triggerBoardroomMeeting() {
-  document.getElementById("hqStatusText").innerHTML = "🤝 <b>اجتماع الشركة الأسبوعي:</b> جميع الموظفين يتجمعون في قاعة الاجتماعات لمراجعة الأداء!";
+  document.getElementById("hqStatusText").innerHTML = gt("v8.status.meeting");
   logKawaliss("📅 Weekly Boardroom meeting started. All agents walking to Boardroom.");
   const spots = [
     {x: -13.0, z: 6.2}, {x: -11.5, z: 6.2}, {x: -10.0, z: 6.2},
@@ -933,16 +945,16 @@ function triggerBoardroomMeeting() {
   ];
   Object.keys(avatarMap).forEach((id, idx) => {
     const sp = spots[idx % spots.length];
-    sendAvatarAlongHallway(id, sp.x, sp.z, "🤝", "في اجتماع الفريق", 5000);
+    sendAvatarAlongHallway(id, sp.x, sp.z, "🤝", gt("v8.act.meeting_bubble"), 5000);
   });
 }
 
 // 4. Weekly GitHub Skill Library Study
 function triggerLibraryStudy() {
-  document.getElementById("hqStatusText").innerHTML = "📚 <b>ساعة التطوير الذاتي:</b> المطورون في مكتبة GitHub للبحث عن مهارات جديدة!";
+  document.getElementById("hqStatusText").innerHTML = gt("v8.status.study");
   logKawaliss("🧠 Agents studying new GitHub skills in the Library.");
-  sendAvatarAlongHallway("Dev-Lead", 10.2, 7.5, "📚", "يدرس مهارة في GitHub", 4500);
-  sendAvatarAlongHallway("QA-Sec", 12.6, 7.5, "🧠", "يحلل كود حماية جديد", 4500);
+  sendAvatarAlongHallway("Dev-Lead", 10.2, 7.5, "📚", gt("v8.act.study_github"), 4500);
+  sendAvatarAlongHallway("QA-Sec", 12.6, 7.5, "🧠", gt("v8.act.study_security"), 4500);
 }
 
 function animateVoxelHQ() {
@@ -1011,18 +1023,18 @@ async function streamAgentTask(agentId, rawPrompt) {
   if (!prompt) return;
 
   if(agentId === "Genio-Rayes") {
-    setAgentState("Genio-Rayes", "phone", "📞", "يخطط ويوزع المهام...");
+    setAgentState("Genio-Rayes", "phone", "📞", gt("v8.state.planning"));
   } else {
     spawnLaserSignal("Genio-Rayes", agentId, 0x00f2fe);
-    setAgentState(agentId, "working", "⚡", "يكتب الكود وينفذ...");
+    setAgentState(agentId, "working", "⚡", gt("v8.state.coding"));
   }
 
-  document.getElementById("hqStatusText").innerHTML = `⚡ <b>${agentId}:</b> يشتغل الآن بشكل حي على المهمة...`;
+  document.getElementById("hqStatusText").innerHTML = gt("v8.status.working", {agent: agentId});
 
   const stream = document.getElementById("chatStream");
   const msgDiv = document.createElement("div");
   msgDiv.className = "msg";
-  msgDiv.innerHTML = `<div><b>🤖 ${agentId}</b> <span class="badge" id="liveBadge">⏳ يشتغل...</span></div><div class="live-body" style="margin-top:6px;white-space:pre-wrap;"></div><div class="live-actions" style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;"></div>`;
+  msgDiv.innerHTML = `<div><b>🤖 ${agentId}</b> <span class="badge" id="liveBadge">${gt("v8.live.working")}</span></div><div class="live-body" style="margin-top:6px;white-space:pre-wrap;"></div><div class="live-actions" style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;"></div>`;
   stream.appendChild(msgDiv);
   stream.scrollTop = stream.scrollHeight;
 
@@ -1058,19 +1070,19 @@ async function streamAgentTask(agentId, rawPrompt) {
           else if(a.type==="run_cmd") actEl.innerHTML += `<span class="badge">⚙️ ${a.cmd}</span>`;
         }
         else if (ev.event === "done") {
-          badgeEl.innerText = `✅ تم (${ev.elapsed_sec}s)`;
+          badgeEl.innerText = gt("v8.live.done", {secs: ev.elapsed_sec});
           logKawaliss(ev.message);
           if(agentId !== "Genio-Rayes") {
             triggerDeliverReport(agentId);
           } else {
-            setAgentState("Genio-Rayes", "idle", "👑", "تم التوجيه بنجاح");
+            setAgentState("Genio-Rayes", "idle", "👑", gt("v8.live.routed"));
           }
           refreshAll();
         }
       }
     }
   } catch(e) {
-    setAgentState(agentId, "idle", "⚠️", "خطأ في الاتصال");
+    setAgentState(agentId, "idle", "⚠️", gt("v8.live.conn_error"));
     logKawaliss(`⚠️ Error: ${e}`);
   }
 }
@@ -1080,7 +1092,7 @@ async function streamSingleAgentTask() {
   const raw = box.value.trim();
   if(!raw) return;
   box.value = "";
-  document.getElementById("chatStream").innerHTML += `<div class="msg user"><b>🧑‍💻 عزمي (المالك):</b><br>${cleanPromptText(raw)}</div>`;
+  document.getElementById("chatStream").innerHTML += `<div class="msg user"><b>${gt("v8.chat.owner")}:</b><br>${cleanPromptText(raw)}</div>`;
   await streamAgentTask(selectedAgent, `${raw}\n\nIMPORTANT: Save all generated files inside a dedicated project folder using <write_file path="project_folder/file.ext">...</write_file>.`);
 }
 
@@ -1089,7 +1101,7 @@ async function runSwarmLive() {
   const mission = cleanPromptText(box.value.trim()) || "Build a complete modular web app inside folder 'voxel_hq_app/' with index.html, app.py, and README.md";
   box.value = "";
   triggerPhoneDispatch();
-  document.getElementById("chatStream").innerHTML += `<div class="msg user"><b>🐝 مهمة الشركة المتكاملة:</b><br>${mission}</div>`;
+  document.getElementById("chatStream").innerHTML += `<div class="msg user"><b>${gt("v8.chat.swarm")}:</b><br>${mission}</div>`;
   await streamAgentTask("Genio-Rayes", `STEP 1 (CEO): Plan project folder structure and write README.md using <write_file path="..."> for:\n${mission}`);
   await streamAgentTask("Dev-Lead", `STEP 2 (Dev-Lead): Write all code files using <write_file path="..."> for:\n${mission}`);
   await streamAgentTask("QA-Sec", `STEP 3 (QA-Sec): Verify all files using <run_cmd>...</run_cmd> for:\n${mission}`);
@@ -1236,17 +1248,17 @@ async function saveAdminConfig() {
       num_ctx: 8192
     })
   });
-  document.getElementById("adminSaveMsg").innerText = "✅ تم الحفظ!";
+  document.getElementById("adminSaveMsg").innerText = gt("v8.admin.saved");
   refreshAll();
 }
 
 async function pullOllamaModel() {
   const name = document.getElementById("pullModelInput").value.trim();
   if(!name) return;
-  document.getElementById("pullStatus").innerText = "⏳ جاري السحب...";
+  document.getElementById("pullStatus").innerText = gt("v8.admin.pulling");
   const r = await fetch("/api/models/pull", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({model_name: name})});
   const d = await r.json();
-  document.getElementById("pullStatus").innerText = d.ok ? "✅ اكتمل السحب!" : "❌ خطأ";
+  document.getElementById("pullStatus").innerText = d.ok ? gt("v8.admin.pulled") : gt("v8.admin.error");
   refreshAll();
 }
 

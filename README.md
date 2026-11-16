@@ -11,7 +11,7 @@
 git clone https://github.com/HiTechLabTN/hitech-genio-os.git
 cd hitech-genio-os
 make install      # venv + المتطلّبات
-make test         # 143 اختبار
+make test         # 146 اختبار
 make run          # http://127.0.0.1:8099
 ```
 
@@ -69,7 +69,7 @@ docker compose up -d
   mission بـ DAG (PM → Architect → Coder → QA)، preview، ZIP، وdeploy plans.
 - **Skill packs** بـ **eval gate**: ما يتفعّلش pack إلا إذا عدّى الـ evals.
 - **مؤسسات**: أعضاء، أدوار، تقرير استعمال، **CSV audit**.
-- **i18n/RTL**: `ar-TN`, `ar`, `fr`, `en` — 154 مفتاح، والاتجاه data ماشي guess.
+- **i18n/RTL**: `ar-TN`, `ar`, `fr`, `en` — 198 مفتاح، والاتجاه data ماشي guess.
   login / onboarding / studio **و6 tabs متاع v8** (office/IDE/logs/terminal/rag/admin)
   كامل مربوطين بـ `data-i18n` + switcher + `dir` من `/api/i18n`.
 
