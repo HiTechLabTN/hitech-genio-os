@@ -1,0 +1,36 @@
+#!/bin/sh
+# Genio OS — ما يقبلش إسناد لمؤلف ولا لأداة أخرى في رسالة الكوميت.
+#
+# كي ينشط (scripts/setup_githooks.sh) يتحقّق من رسالة كل كوميت ويحيّد:
+#   • Co-authored-by: / Signed-off-by: / Reviewed-by: / أي "…by:" في آخر الرسالة
+#   • "Generated with …" / "Made with …" وسطر الإيموجي 🤖
+# و يطبع تنبيه إذا بقى اسم أداة أو مزوّد في النص.
+#
+# ما يعملش reject: ينقّي و يخلّي الكوميت يعدّي، باش ما يعطّلش الشغل.
+
+msg="${1:-}"
+[ -n "$msg" ] && [ -f "$msg" ] || exit 0
+
+tmp="${msg}.genio-tmp"
+clean="${msg}.genio-clean"
+
+# 1) أسطر الإسناد  +  2) سطر الأداة
+grep -viE '^[[:space:]]*[a-z][a-z-]*by[[:space:]]*:' "$msg" 2>/dev/null \
+  | grep -viE '^[[:space:]]*(generated|made|created|written)[[:space:]]+with[[:space:]]' 2>/dev/null \
+  | grep -viE '^[[:space:]]*(🤖|🦾)' 2>/dev/null > "$tmp" || true
+
+# 3) نحيدو الفراغات الزايدة في آخر الرسالة
+awk '{ line[NR] = $0 } END { last = NR; while (last > 0 && line[last] ~ /^[[:space:]]*$/) last--; for (i = 1; i <= last; i++) print line[i] }' "$tmp" > "$clean"
+
+if ! cmp -s "$msg" "$clean"; then
+  echo "genio: حيّدت أسطر الإسناد (co-authored-by / generated with …) من الكوميت." >&2
+fi
+mv "$clean" "$msg"
+rm -f "$tmp"
+
+# 4) تنبيه فقط — ما نمنعوش الكوميت
+if grep -qiE 'codebuff|codex|claude|chatgpt|openai|anthropic|copilot|cursor|gemini|deepseek' "$msg"; then
+  echo "genio: تنبيه — الرسالة فيها اسم أداة/مزوّد؛ راجعها قبل الدفع." >&2
+fi
+
+exit 0

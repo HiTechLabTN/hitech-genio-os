@@ -9,11 +9,12 @@ VENV ?= $(shell sh scripts/venv_path.sh)
 GIO_HOST ?= 127.0.0.1
 GIO_PORT ?= 8099
 
-.PHONY: help venv install run test compile backup clean
+.PHONY: help venv install hooks run test compile backup clean
 
 help:
 	@echo "make venv      — مسار الـ venv المستعمل ($(VENV))"
 	@echo "make install   — إنشاء venv + تثبيت المتطلّبات"
+	@echo "make hooks     — تفعيل .githooks/commit-msg (حماية هوية الكوميتات)"
 	@echo "make run       — تشغيل المنصّة محليًا على $(GIO_HOST):$(GIO_PORT)"
 	@echo "make test      — pytest (المجموعة كاملة)"
 	@echo "make compile   — فحص syntax لكل الـ Python"
@@ -25,6 +26,9 @@ venv:
 
 install:
 	@PYTHON="$(PY)" sh scripts/make_venv.sh "$(VENV)"
+
+hooks:
+	sh scripts/setup_githooks.sh
 
 run:
 	$(VENV)/bin/$(PY) -m uvicorn web.server:app --host $(GIO_HOST) --port $(GIO_PORT)

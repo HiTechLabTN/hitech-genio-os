@@ -11,9 +11,23 @@
 git clone https://github.com/HiTechLabTN/hitech-genio-os.git
 cd hitech-genio-os
 make install      # venv + المتطلّبات
-make test         # 146 اختبار
+make hooks        # تفعيل .githooks/commit-msg
+make test         # 154 اختبار
 make run          # http://127.0.0.1:8099
 ```
+
+### 🔒 حماية هوية الكوميتات
+
+الريبو فيه `.githooks/commit-msg` يحيّد أي `Co-authored-by:` / `Signed-off-by:` /
+`Generated with …` من رسالة الكوميت. كل clone جديد يفعّلو بأمر واحد:
+
+```bash
+make hooks        # = sh scripts/setup_githooks.sh
+```
+
+`core.hooksPath` ولّى على `.githooks` عادي، وإلا — كي الريبو على **noexec** (sshfs)
+و git ما يقدرش ينفّذ ملف منّو — السكريبت ينسخ الهوك لـ `~/.local/share/genio-os/hooks`
+ويربط هالمسار. في الزوز الحالات نفس الحماية.
 
 ### 🐍 وين يتخلق الـ venv؟
 
