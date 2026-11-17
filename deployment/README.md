@@ -66,7 +66,33 @@ sudo nginx -t && sudo systemctl reload nginx
 > الهيدرات المزيّفة من الإنترنت ما تتصدّقش: إذا الـ peer ماشي loopback،
 > `client_ip()` يرجّع IP الـ peer بروحو و يتجاهل `CF-Connecting-IP`.
 
-## 5) تحقّق بعد النشر
+## 5) تحقّق آلي: `make verify-prod`
+
+```bash
+cd /data/genio-os
+GENIO_VERIFY_EMAIL='azmi@hitech.tn' GENIO_VERIFY_PASSWORD='…' make verify-prod
+```
+
+يفحص و يطبع PASS/FAIL لكل واحد، و exit code 0 غير كي الكل يعدّي:
+
+| # | الفحص | كيفاش |
+|---|---|---|
+| 1 | الكود = `origin/main` | `git rev-list --left-right --count HEAD...origin/main` = `0 0` + شجرة نظيفة + الملفات الحرجة |
+| 2 | `/api/status` | version، node، workspace داخل مجلد التثبيت |
+| 3 | الواجهة | `GET /` = 200 + `data-i18n="v8.tab.office"` + locale switcher |
+| 4 | `/api/i18n` | ar-TN/ar → rtl، fr/en → ltr، مفاتيح `v8.*` |
+| 5 | SSE | `text/event-stream` + `X-Accel-Buffering: no` + `no-cache` |
+| 6 | الكوكي | `Secure` + `HttpOnly` عبر `X-Forwarded-Proto: https` |
+| 7 | IP الحقيقي | محاولة فاشلة بإيميل `verify-probe@…` + `CF-Connecting-IP: 203.0.113.77` → لازم تتسجّل في `login_attempts` |
+| 8 | الدومين | `go.hitech.tn` = 200 ولا 302 لـ Cloudflare Access |
+
+زائد: `sh scripts/verify_production.sh --code-only` (git و ملفات برك، بلا شبكة)،
+و `--no-public` كان تحبّ تتجنّب الدومين.
+
+متغيّرات: `GENIO_INSTALL_DIR` (افتراضي `/data/genio-os`)، `GENIO_VERIFY_URL`
+(افتراضي `http://127.0.0.1:8099`)، `GENIO_PUBLIC_URL` (افتراضي `https://go.hitech.tn`).
+
+## 6) تحقّق يدوي بعد النشر
 
 ```bash
 # 1) الخدمة محليًا

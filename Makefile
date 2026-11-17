@@ -9,7 +9,7 @@ VENV ?= $(shell sh scripts/venv_path.sh)
 GIO_HOST ?= 127.0.0.1
 GIO_PORT ?= 8099
 
-.PHONY: help venv install hooks run test compile backup clean
+.PHONY: help venv install hooks run test verify-prod compile backup clean
 
 help:
 	@echo "make venv      — مسار الـ venv المستعمل ($(VENV))"
@@ -17,6 +17,7 @@ help:
 	@echo "make hooks     — تفعيل .githooks/commit-msg (حماية هوية الكوميتات)"
 	@echo "make run       — تشغيل المنصّة محليًا على $(GIO_HOST):$(GIO_PORT)"
 	@echo "make test      — pytest (المجموعة كاملة)"
+	@echo "make verify-prod — فحص الإنتاج على TN (كود + API + SSE + IP)"
 	@echo "make compile   — فحص syntax لكل الـ Python"
 	@echo "make backup    — نسخة احتياطية للذاكرة والـ workspace والإعدادات"
 	@echo "make clean     — حذف __pycache__ و .pytest_cache"
@@ -35,6 +36,9 @@ run:
 
 test:
 	$(VENV)/bin/$(PY) -m pytest -q
+
+verify-prod:
+	sh scripts/verify_production.sh
 
 compile:
 	$(VENV)/bin/$(PY) -m compileall -q core web tests
