@@ -54,6 +54,35 @@ sudo nginx -t && sudo systemctl reload nginx
 # و cloudflared يوجّه لـ http://127.0.0.1:8090
 ```
 
+## 3.1) نسخة احتياطية يومية + استرجاع
+
+```bash
+sudo cp deployment/genio-backup.service deployment/genio-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now genio-backup.timer
+systemctl list-timers genio-backup.timer --no-pager
+
+sudo -u genio make backup     # تجربة يدوية توّا
+sudo -u genio make backups    # لائحة النسخ
+```
+
+النسخة تحوي `config.json` + `memory/genio.db` (snapshot متّسق عبر sqlite backup API)
++ `memory/` + `workspace/` + `rag_docs/`, مع `manifest.json` (عدد الملفات و الحسابات
+و commit) و `.sha256` جنبها. الاحتفاظ: `GENIO_BACKUP_KEEP=14` نسخة و
+`GENIO_BACKUP_DAYS=30` (يتحذفو الأقدم تلقائيًا).
+
+**استرجاع مجرّب** (ما يدهسش داتا بلا `--force`):
+
+```bash
+sudo -u genio bash scripts/restore.sh --from latest --into /tmp/genio-restore --dry-run
+sudo -u genio bash scripts/restore.sh --from latest --into /tmp/genio-restore
+#   ✅ عدد الملفات مطابق (N)   ✅ عدد الحسابات مطابق (M)
+# للاسترجاع الحقيقي:
+sudo systemctl stop genio-os
+sudo -u genio bash scripts/restore.sh --from latest --into /data/genio-os --force
+sudo systemctl start genio-os && make verify-prod
+```
+
 ## 4) علاش المنصّة كانت تنقص برشا حوايج وراء البروكسي
 
 | المشكل | قبل | توّا |
@@ -61,7 +90,8 @@ sudo nginx -t && sudo systemctl reload nginx
 | IP الزائر | `127.0.0.1` للكل (سجل المحاولات و audit غالط) | `core/proxy.py` يقرا `CF-Connecting-IP` / `X-Forwarded-For` — **غير** كي الطلب جاي من بروكسي loopback |
 | كوكي الجلسة | `Secure` ما تتحطّش (uvicorn يشوف http) | تتحطّ كي `X-Forwarded-Proto: https` ولا `CF-Visitor` ولا `CF-Connecting-IP` موجود |
 | SSE `/api/task/stream` | بلا headers، ممكن يتخزّن ولا يتـbuffer | `Cache-Control: no-cache, no-transform` + `X-Accel-Buffering: no` |
-| `/api/*` | loopback-only إلا كان `GENIO_API_TOKEN` | ما تبدّلش: البروكسي المحلي = loopback، فـ access داخلي يخدم؛ Cloudflare Access هو الحاجز الخارجي |
+| `/api/*` | loopback-only إلا كان `GENIO_API_TOKEN` | بقى loopback-only، أما زدنا **`security.trusted_proxies`** / `GENIO_TRUSTED_PROXIES` (CIDR): كان الـ tunnel/nginx/docker يكلّم من عنوان آخر، زيدو للائحة — و إلا كل طلب يترد 403 |
+| شاشة الدخول | كانت تعرض أسماء مفاتيح (`auth.title.login`) كي الكاتالوغ ما يتجابش | صارت تعرض نص عادي، و سبب الرفض متاع السيرفر (مع IP الـ peer) يبان تحت |
 
 > الهيدرات المزيّفة من الإنترنت ما تتصدّقش: إذا الـ peer ماشي loopback،
 > `client_ip()` يرجّع IP الـ peer بروحو و يتجاهل `CF-Connecting-IP`.

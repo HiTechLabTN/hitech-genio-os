@@ -103,6 +103,12 @@ def test_overlays_carry_translation_hooks():
     assert 'id="gioLocaleStudio"' in INDEX_HTML
 
 
+def test_login_texts_fall_back_to_html_instead_of_raw_keys():
+    """كان الكاتالوغ ما يجاش، الشاشة كانت تعرض "auth.title.login" حرفيًا."""
+    assert 'el.textContent = t(key, el.textContent)' in APP_JS
+    assert 't("auth.hint.no_api", "API")' in APP_JS
+
+
 def test_locale_switch_redraws_the_visible_overlay():
     """العنوان والـ hint متاع الـ auth يتكتبو بـ JS، لازم يتعاودو بعد تبديل اللغة."""
     assert "function renderAuthTexts" in APP_JS

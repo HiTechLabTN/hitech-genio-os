@@ -9,7 +9,7 @@ VENV ?= $(shell sh scripts/venv_path.sh)
 GIO_HOST ?= 127.0.0.1
 GIO_PORT ?= 8099
 
-.PHONY: help venv install hooks run test verify-prod compile backup clean
+.PHONY: help venv install hooks run test verify-prod compile backup backups clean
 
 help:
 	@echo "make venv      — مسار الـ venv المستعمل ($(VENV))"
@@ -19,7 +19,8 @@ help:
 	@echo "make test      — pytest (المجموعة كاملة)"
 	@echo "make verify-prod — فحص الإنتاج على TN (كود + API + SSE + IP)"
 	@echo "make compile   — فحص syntax لكل الـ Python"
-	@echo "make backup    — نسخة احتياطية للذاكرة والـ workspace والإعدادات"
+	@echo "make backup    — نسخة احتياطية (DB + workspace + memory + rag_docs)"
+	@echo "make backups   — لائحة النسخ المتوفّرة للاسترجاع"
 	@echo "make clean     — حذف __pycache__ و .pytest_cache"
 
 venv:
@@ -45,6 +46,9 @@ compile:
 
 backup:
 	bash scripts/backup.sh
+
+backups:
+	bash scripts/restore.sh --list
 
 clean:
 	find . -name __pycache__ -type d -prune -exec rm -rf {} +

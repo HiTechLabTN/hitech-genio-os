@@ -73,9 +73,14 @@
 
   function renderAuthTexts() {
     const bootstrap = state.mode === "bootstrap";
-    $("gioAuthTitle").textContent = bootstrap ? t("auth.title.bootstrap") : t("auth.title.login");
-    $("gioAuthHint").textContent = bootstrap ? t("auth.hint.bootstrap") : t("auth.hint.login");
-    $("gioAuthSubmit").textContent = bootstrap ? t("auth.create") : t("action.login");
+    // fallback = النص الموجود في HTML: ما نعرضوش اسم المفتاح أبدًا
+    const set = (id, key) => {
+      const el = $(id);
+      if (el) el.textContent = t(key, el.textContent);
+    };
+    set("gioAuthTitle", bootstrap ? "auth.title.bootstrap" : "auth.title.login");
+    set("gioAuthHint", bootstrap ? "auth.hint.bootstrap" : "auth.hint.login");
+    set("gioAuthSubmit", bootstrap ? "auth.create" : "action.login");
     $("gioNameRow").hidden = !bootstrap;
   }
 
@@ -547,7 +552,9 @@
 
     const status = await api("/api/auth/status");
     if (!status.ok) {
-      showAuth("login", t("auth.hint.no_api"));
+      // نعرضو سبب الرفض متاع السيرفر (مثلاً: peer غير موثوق) بدل رسالة عامّة
+      const reason = (status.data && status.data.error) || "";
+      showAuth("login", reason || t("auth.hint.no_api", "API"));
       return;
     }
     state.bootstrapped = !!status.data.bootstrapped;

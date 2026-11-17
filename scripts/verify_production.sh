@@ -146,7 +146,11 @@ fi
 
 # ---------------------------------------------------------------------------
 head1 "2) الخدمة: /api/status"
-curl -sS --max-time 20 -H "Cookie: genio_session=$TOKEN" "$LOCAL_URL/api/status" -o /tmp/genio-verify-status.json 2>/dev/null || true
+  curl -sS --max-time 20 -H "Cookie: genio_session=$TOKEN" "$LOCAL_URL/api/status" -o /tmp/genio-verify-status.json 2>/dev/null || true
+DENIED=$(json_get /tmp/genio-verify-status.json error 2>/dev/null || true)
+case "$DENIED" in
+  *"not reachable"*) fail "السيرفر يرفض طلبات البروكسي: $DENIED — زيد الـ CIDR متاع البروكسي في GENIO_TRUSTED_PROXIES" ;;
+esac
 if [ "$HAVE_SESSION" = "0" ] && [ -n "$EMAIL" ]; then
   skip "/api/status يحتاج جلسة و الدخول فشل"
 elif [ ! -s /tmp/genio-verify-status.json ]; then
@@ -196,6 +200,11 @@ for pair in "ar-TN:rtl" "ar:rtl" "fr:ltr" "en:ltr"; do
 done
 CLAUSE=$(json_key /tmp/genio-verify-fr.json strings v8.tab.office)
 [ -n "$CLAUSE" ] && pass "مفاتيح v8 موجودة (v8.tab.office = \"$CLAUSE\")" || fail "v8.tab.office ناقص في fr — كاتالوغ قديم"
+AUTH_TITLE=$(json_key /tmp/genio-verify-ar-TN.json strings auth.title.login)
+case "$AUTH_TITLE" in
+  ""|auth.*) fail "auth.title.login ناقص — شاشة الدخول باش تبان فيها أسماء مفاتيح \"$AUTH_TITLE\"" ;;
+  *) pass "مفاتيح شاشة الدخول موجودة (auth.title.login)" ;;
+esac
 
 # ---------------------------------------------------------------------------
 head1 "5-7) الجلسة، SSE، و IP الحقيقي"
@@ -243,11 +252,14 @@ else
   if [ -z "$PY" ]; then
     skip "ما فمّاش python لقراءة قاعدة البيانات — تخطّينا فحص IP"
   else
+    # قاعدة البيانات في $INSTALL_DIR عادةً، أما GENIO_DATA_DIR ينجّم يشير لبلاصة أخرى
+    SCAN_ROOTS="$INSTALL_DIR"
+    [ -n "${GENIO_DATA_DIR:-}" ] && SCAN_ROOTS="$INSTALL_DIR|$GENIO_DATA_DIR"
     IP_RESULT=$("$PY" -c 'import os, sqlite3, sys
-root = sys.argv[1]
 paths = []
-for base, _dirs, files in os.walk(root):
-    paths.extend(os.path.join(base, f) for f in files if f.endswith(".db"))
+for root in sys.argv[1].split("|"):
+    for base, _dirs, files in os.walk(root):
+        paths.extend(os.path.join(base, f) for f in files if f.endswith(".db"))
 for path in paths:
     try:
         conn = sqlite3.connect("file:%s?mode=ro" % path, uri=True)
@@ -259,7 +271,7 @@ for path in paths:
             print("|".join(rows))
             break
     except Exception:
-        continue' "$INSTALL_DIR" 2>/dev/null)
+        continue' "$SCAN_ROOTS" 2>/dev/null)
     case "$IP_RESULT" in
       *203.0.113.77*) pass "IP الحقيقي تسجّل في login_attempts (203.0.113.77، ماشي 127.0.0.1)" ;;
       "") fail "ما لقيتش محاولة مسجّلة في login_attempts — الجدول ولا الـ IP غالط" ;;

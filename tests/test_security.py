@@ -23,7 +23,10 @@ def test_status_ok_from_loopback(loopback):
 def test_remote_without_token_is_refused(remote):
     response = remote.get("/api/status")
     assert response.status_code == 403
-    assert "loopback" in response.json()["error"]
+    error = response.json()["error"]
+    # الرسالة لازم تسمّي الـ peer و تقول كيفاش ينضاف كبروكسي موثوق
+    assert "not reachable" in error
+    assert "trusted_proxies" in error or "GENIO_TRUSTED_PROXIES" in error
 
 
 def test_remote_cannot_use_shell_or_files(remote):

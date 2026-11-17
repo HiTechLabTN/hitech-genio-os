@@ -16,12 +16,15 @@ deployment without editing files: ``GENIO_API_TOKEN``, ``GENIO_HOST``,
 from __future__ import annotations
 
 import hmac
+import ipaddress
+import logging
 import os
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from fastapi import HTTPException, Request, status
 
 TOKEN_ENV = "GENIO_API_TOKEN"
+TRUSTED_PROXIES_ENV = "GENIO_TRUSTED_PROXIES"
 TOKEN_HEADER = "X-Genio-Token"
 TOKEN_QUERY = "token"
 
@@ -29,6 +32,7 @@ LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost", "testclient"})
 
 _ENV_TO_SETTING = {
     "GENIO_HOST": "host",
+    "GENIO_TRUSTED_PROXIES": "trusted_proxies",
     "GENIO_ENABLE_SHELL": "enable_shell",
     "GENIO_ENABLE_UPDATE": "enable_update",
 }
@@ -76,9 +80,46 @@ def update_enabled(engine: Any) -> bool:
     return _flag(settings(engine).get("enable_update"))
 
 
+LOGGER = logging.getLogger("genio.security")
+
+
 def client_is_loopback(request: Request) -> bool:
     host = (request.client.host if request.client else "") or ""
     return host in LOOPBACK_HOSTS or host.startswith("127.")
+
+
+def trusted_proxies(engine: Any) -> List[str]:
+    """CIDR/IPs متاع البروكسي (cloudflared / nginx / docker) — config أو env."""
+    raw = os.environ.get(TRUSTED_PROXIES_ENV)
+    if raw is None:
+        raw = settings(engine).get("trusted_proxies") or ""
+    if isinstance(raw, (list, tuple)):
+        items = [str(item) for item in raw]
+    else:
+        items = str(raw).replace("\n", ",").split(",")
+    return [item.strip() for item in items if item.strip()]
+
+
+def _matches(host: str, entries: List[str]) -> bool:
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    for entry in entries:
+        try:
+            if address in ipaddress.ip_network(entry, strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def client_is_trusted(request: Request, engine: Any) -> bool:
+    """loopback، ولا بروكسي معرّف بالعنوان في security.trusted_proxies."""
+    host = (request.client.host if request.client else "") or ""
+    if client_is_loopback(request):
+        return True
+    return _matches(host, trusted_proxies(engine))
 
 
 def supplied_token(request: Request) -> str:
@@ -103,12 +144,15 @@ def check_api_access(request: Request, engine: Any) -> None:
                 headers={"WWW-Authenticate": "Bearer"},
             )
         return
-    if not client_is_loopback(request):
+    if not client_is_trusted(request, engine):
+        peer = ((request.client.host if request.client else "") or "?").strip()
+        LOGGER.warning("blocked /api request from untrusted peer %s (%s)", peer, request.url.path)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
-                "API is loopback-only. Set security.api_token (or GENIO_API_TOKEN) "
-                "to expose the platform safely."
+                f"API is not reachable from this address (peer {peer}). "
+                "Add the proxy to security.trusted_proxies / GENIO_TRUSTED_PROXIES "
+                "or set security.api_token (GENIO_API_TOKEN)."
             ),
         )
 

@@ -16,6 +16,7 @@
     "host": "127.0.0.1",
     "api_token": "",
     "enable_shell": false,
-    "enable_update": false
+    "enable_update": false,
+    "trusted_proxies": []
   }
 }

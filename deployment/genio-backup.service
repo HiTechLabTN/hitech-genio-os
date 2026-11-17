@@ -1,0 +1,16 @@
+[Unit]
+Description=Genio OS — nightly backup (/data/genio-os)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=genio
+Group=genio
+WorkingDirectory=/data/genio-os
+Environment=GENIO_DATA_DIR=/data/genio-os
+Environment=GENIO_BACKUP_DIR=/data/genio-os/backups
+Environment=GENIO_BACKUP_KEEP=14
+Environment=GENIO_BACKUP_DAYS=30
+ExecStart=/bin/bash /data/genio-os/scripts/backup.sh
+Nice=10
+IOSchedulingClass=idle
