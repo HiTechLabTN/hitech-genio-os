@@ -28,6 +28,21 @@ def test_config_ships_with_no_trusted_proxies():
     assert config["security"].get("trusted_proxies") == []
 
 
+def test_config_ships_with_private_networks_for_the_tunnel():
+    config = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+    assert config["security"]["trusted_networks"] == [
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+    ]
+
+
+def test_default_networks_apply_when_config_is_silent(server, monkeypatch):
+    monkeypatch.setattr(server.engine, "config", {"security": {}}, raising=False)
+    monkeypatch.delenv("GENIO_TRUSTED_NETWORKS", raising=False)
+    assert security.trusted_networks(server.engine) == list(security.DEFAULT_TRUSTED_NETWORKS)
+
+
 def test_unknown_peer_is_rejected_with_an_actionable_message(server):
     client = _client(server, "203.0.113.5")
     response = client.get("/api/i18n/fr")
@@ -59,6 +74,94 @@ def test_ipv6_default_loopback_still_works(server):
 def test_loopback_is_always_trusted(server):
     client = _client(server, "127.0.0.1")
     assert client.get("/api/i18n/en").status_code == 200
+
+
+def test_tunnel_peer_from_docker_with_cloudflare_headers_is_allowed(server):
+    """الحالة الحقيقية: cloudflared/docker يكلّم من 172.x و يحطّ CF-Connecting-IP."""
+    client = _client(server, "172.17.0.2")
+    response = client.get("/api/i18n/fr", headers={"CF-Connecting-IP": "41.226.10.7"})
+    assert response.status_code == 200
+    assert response.json()["strings"]["auth.title.login"]
+
+
+def test_tunnel_peer_from_10_x_with_access_jwt_is_allowed(server):
+    """Cf-Access-Jwt-Assertion كافي كأثر (بلا ما نعرفو الـ CIDR بالضبط)."""
+    client = _client(server, "10.0.0.5")
+    response = client.get(
+        "/api/i18n/ar-TN", headers={"Cf-Access-Jwt-Assertion": "eyJhbGciOi.test.token"}
+    )
+    assert response.status_code == 200
+    assert response.json()["dir"] == "rtl"
+
+
+def test_private_peer_without_cloudflare_headers_stays_blocked(server):
+    client = _client(server, "172.17.0.2")
+    assert client.get("/api/i18n/fr").status_code == 403
+
+
+def test_forwarded_for_alone_is_not_cloudflare_evidence(server):
+    client = _client(server, "172.17.0.2")
+    response = client.get("/api/i18n/fr", headers={"X-Forwarded-For": "41.226.10.7"})
+    assert response.status_code == 403
+
+
+def test_internet_peer_with_forged_cloudflare_headers_is_blocked(server):
+    """طلب من الإنترنت ما يولي موثوق حتى لو زيّد هيدرات CF."""
+    client = _client(server, "203.0.113.5")
+    response = client.get(
+        "/api/i18n/fr",
+        headers={"CF-Connecting-IP": "127.0.0.1", "CF-Ray": "85abc", "Cf-Access-Jwt-Assertion": "x"},
+    )
+    assert response.status_code == 403
+    assert "203.0.113.5" in response.json()["error"]
+
+
+def test_real_client_ip_is_read_through_the_tunnel(server):
+    from core import proxy
+    from starlette.requests import Request
+
+    raw = [
+        (b"cf-connecting-ip", b"41.226.10.7"),
+        (b"x-forwarded-proto", b"https"),
+    ]
+    scope = {
+        "type": "http",
+        "http_version": "1.1",
+        "method": "GET",
+        "scheme": "http",
+        "path": "/api/status",
+        "raw_path": b"/api/status",
+        "query_string": b"",
+        "headers": raw,
+        "client": ("172.17.0.2", 50000),
+        "server": ("127.0.0.1", 8099),
+        "app": server.app,
+    }
+    req = Request(scope)
+    assert proxy.client_ip(req) == "41.226.10.7"
+    assert proxy.is_https(req) is True
+
+
+def test_real_client_ip_from_internet_is_the_peer(server):
+    from core import proxy
+    from starlette.requests import Request
+
+    scope = {
+        "type": "http",
+        "http_version": "1.1",
+        "method": "GET",
+        "scheme": "http",
+        "path": "/api/status",
+        "raw_path": b"/api/status",
+        "query_string": b"",
+        "headers": [(b"cf-connecting-ip", b"1.2.3.4")],
+        "client": ("203.0.113.5", 50000),
+        "server": ("127.0.0.1", 8099),
+        "app": server.app,
+    }
+    req = Request(scope)
+    assert proxy.client_ip(req) == "203.0.113.5"
+    assert proxy.is_https(req) is False
 
 
 def test_matches_handles_plain_ips_and_garbage(monkeypatch):

@@ -17,6 +17,11 @@
     "api_token": "",
     "enable_shell": false,
     "enable_update": false,
-    "trusted_proxies": []
+    "trusted_proxies": [],
+    "trusted_networks": [
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+      "192.168.0.0/16"
+    ]
   }
 }

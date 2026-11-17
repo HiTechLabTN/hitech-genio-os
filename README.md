@@ -12,7 +12,7 @@ git clone https://github.com/HiTechLabTN/hitech-genio-os.git
 cd hitech-genio-os
 make install      # venv + المتطلّبات
 make hooks        # تفعيل .githooks/commit-msg
-make test         # 191 اختبار
+make test         # 200 اختبار
 make run          # http://127.0.0.1:8099
 ```
 

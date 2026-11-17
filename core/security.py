@@ -25,6 +25,21 @@ from fastapi import HTTPException, Request, status
 
 TOKEN_ENV = "GENIO_API_TOKEN"
 TRUSTED_PROXIES_ENV = "GENIO_TRUSTED_PROXIES"
+TRUSTED_NETWORKS_ENV = "GENIO_TRUSTED_NETWORKS"
+
+# شبكات داخلية (docker bridge، شبكة السيرفر، cloudflared محلي…).
+# الطلب منها يولي موثوق **كان** يحمل أثر Cloudflare (CF-Connecting-IP / Cf-Access).
+DEFAULT_TRUSTED_NETWORKS = ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")
+
+# أي واحد من هالهيدرات يعني الطلب عدّى من Cloudflare قبل ما يوصلنا
+CLOUDFLARE_HEADERS = (
+    "cf-connecting-ip",
+    "cf-access-jwt-assertion",
+    "cf-access-client-id",
+    "cf-ray",
+    "cf-visitor",
+    "true-client-ip",
+)
 TOKEN_HEADER = "X-Genio-Token"
 TOKEN_QUERY = "token"
 
@@ -100,6 +115,26 @@ def trusted_proxies(engine: Any) -> List[str]:
     return [item.strip() for item in items if item.strip()]
 
 
+def trusted_networks(engine: Any) -> List[str]:
+    """الشبكات الداخلية اللي نصدّقو منها هيدرات Cloudflare."""
+    raw = os.environ.get(TRUSTED_NETWORKS_ENV)
+    if raw is None:
+        raw = settings(engine).get("trusted_networks")
+    if raw is None:
+        return list(DEFAULT_TRUSTED_NETWORKS)
+    if isinstance(raw, (list, tuple)):
+        items = [str(item) for item in raw]
+    else:
+        items = str(raw).replace("\n", ",").split(",")
+    cleaned = [item.strip() for item in items if item.strip()]
+    return cleaned or list(DEFAULT_TRUSTED_NETWORKS)
+
+
+def cloudflare_evidence(request: Request) -> bool:
+    """الطلب جاي عبر Cloudflare؟ (هيدر نشرو فيه CF، ماشي X-Forwarded-For)"""
+    return any((request.headers.get(name) or "").strip() for name in CLOUDFLARE_HEADERS)
+
+
 def _matches(host: str, entries: List[str]) -> bool:
     try:
         address = ipaddress.ip_address(host)
@@ -115,11 +150,17 @@ def _matches(host: str, entries: List[str]) -> bool:
 
 
 def client_is_trusted(request: Request, engine: Any) -> bool:
-    """loopback، ولا بروكسي معرّف بالعنوان في security.trusted_proxies."""
+    """loopback، ولا بروكسي معرّف، ولا شبكة داخلية + أثر Cloudflare.
+
+    الهدف: المنصّة تخدم وراء tunnel حتى كان ما تعرفش الـ CIDR متاعو بالضبط،
+    بلا ما تتحلّ لطلب جاي من الإنترنت (حتى لو زيّد هيدرات CF).
+    """
     host = (request.client.host if request.client else "") or ""
     if client_is_loopback(request):
         return True
-    return _matches(host, trusted_proxies(engine))
+    if _matches(host, trusted_proxies(engine)):
+        return True
+    return _matches(host, trusted_networks(engine)) and cloudflare_evidence(request)
 
 
 def supplied_token(request: Request) -> str:
@@ -151,8 +192,9 @@ def check_api_access(request: Request, engine: Any) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
                 f"API is not reachable from this address (peer {peer}). "
-                "Add the proxy to security.trusted_proxies / GENIO_TRUSTED_PROXIES "
-                "or set security.api_token (GENIO_API_TOKEN)."
+                "Traffic must come from loopback, from security.trusted_networks "
+                "with Cloudflare headers, or from security.trusted_proxies. "
+                "Otherwise set security.api_token (GENIO_API_TOKEN)."
             ),
         )
 

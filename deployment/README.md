@@ -83,6 +83,30 @@ sudo -u genio bash scripts/restore.sh --from latest --into /data/genio-os --forc
 sudo systemctl start genio-os && make verify-prod
 ```
 
+## 3.2) الوصول عبر الدومين بلا ما تعرف CIDR متاع البروكسي
+
+ما تحتاجش تحسب CIDR: القاعدة في `core/security.py` —
+
+```
+الطلب مقبول كان:
+  1) الـ peer = loopback                      (cloudflared/nginx على نفس الجهاز)
+  2) ولا الـ peer في security.trusted_networks  (10/8، 172.16/12، 192.168/16)
+     و الطلب فيه هيدر Cloudflare واحد على الأقل:
+     CF-Connecting-IP / Cf-Access-Jwt-Assertion / CF-Ray / CF-Visitor / True-Client-IP
+  3) ولا الـ peer في security.trusted_proxies  (CIDR صريح كان تحب تقفل أكثر)
+```
+
+يعني tunnel يكلّم من `172.17.0.2` ولا `10.0.0.5` مع `CF-Connecting-IP` → يخدم
+وحدو. أما طلب من `203.0.113.5` حتى لو زيّد `CF-Connecting-IP: 127.0.0.1` → **403**
+(الحماية ما تتبناش على هيدر وحدو).
+
+```bash
+# كان الـ tunnel على شبكة غريبة (Tailscale/WireGuard 100.64/10 مثلاً):
+GENIO_TRUSTED_NETWORKS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10
+# ولا قفلها على بروكسي واحد:
+GENIO_TRUSTED_PROXIES=172.20.0.2/32
+```
+
 ## 4) علاش المنصّة كانت تنقص برشا حوايج وراء البروكسي
 
 | المشكل | قبل | توّا |
@@ -90,7 +114,7 @@ sudo systemctl start genio-os && make verify-prod
 | IP الزائر | `127.0.0.1` للكل (سجل المحاولات و audit غالط) | `core/proxy.py` يقرا `CF-Connecting-IP` / `X-Forwarded-For` — **غير** كي الطلب جاي من بروكسي loopback |
 | كوكي الجلسة | `Secure` ما تتحطّش (uvicorn يشوف http) | تتحطّ كي `X-Forwarded-Proto: https` ولا `CF-Visitor` ولا `CF-Connecting-IP` موجود |
 | SSE `/api/task/stream` | بلا headers، ممكن يتخزّن ولا يتـbuffer | `Cache-Control: no-cache, no-transform` + `X-Accel-Buffering: no` |
-| `/api/*` | loopback-only إلا كان `GENIO_API_TOKEN` | بقى loopback-only، أما زدنا **`security.trusted_proxies`** / `GENIO_TRUSTED_PROXIES` (CIDR): كان الـ tunnel/nginx/docker يكلّم من عنوان آخر، زيدو للائحة — و إلا كل طلب يترد 403 |
+| `/api/*` | loopback-only إلا كان `GENIO_API_TOKEN` | يتقبل الطلب كان جاء من **loopback**، ولا من **شبكة داخلية + أثر Cloudflare** (`trusted_networks`)، ولا من CIDR صريح (`trusted_proxies`). طلب من الإنترنت يبقى 403 حتى بـ هيدرات CF مزيّفة |
 | شاشة الدخول | كانت تعرض أسماء مفاتيح (`auth.title.login`) كي الكاتالوغ ما يتجابش | صارت تعرض نص عادي، و سبب الرفض متاع السيرفر (مع IP الـ peer) يبان تحت |
 
 > الهيدرات المزيّفة من الإنترنت ما تتصدّقش: إذا الـ peer ماشي loopback،

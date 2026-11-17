@@ -11,10 +11,12 @@ Group=genio
 WorkingDirectory=/data/genio-os
 Environment=GENIO_DATA_DIR=/data/genio-os
 # التوكن من ملف محمي (chmod 600)، ماشي من سطر الأوامر
-# البروكسي (cloudflared / nginx / docker) يكلّم uvicorn من عنوان ماشي loopback.
-# عدّلها للـ CIDR الفعلي متاع بروكسيك — 172.16.0.0/12 = شبكات docker الافتراضية.
-# كان الـ tunnel على نفس الجهاز (peer=127.0.0.1) ما تحتاجهاش.
-Environment=GENIO_TRUSTED_PROXIES=127.0.0.1/32,::1/128,172.16.0.0/12
+# ما تحتاجش تعرف CIDR متاع البروكسي: الطلبات من الشبكات الداخلية
+# (10/8، 172.16/12، 192.168/16) اللي فيها هيدرات Cloudflare تتصدّق وحدها.
+# كان الـ tunnel على شبكة غريبة، زيدها:
+# Environment=GENIO_TRUSTED_NETWORKS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10
+# ولا استعمل CIDR واحد صريح:
+# Environment=GENIO_TRUSTED_PROXIES=172.20.0.2/32
 EnvironmentFile=-/etc/genio-os/genio.env
 ExecStart=/data/genio-os/venv/bin/python -m uvicorn web.server:app --host 127.0.0.1 --port 8099 --proxy-headers --forwarded-allow-ips=127.0.0.1
 Restart=on-failure

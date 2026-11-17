@@ -35,6 +35,8 @@ from web.routers import tools as tools_api
 
 app = FastAPI(title="Genio OS v5.0 Singularity — Self-Evolving AI Studio")
 engine = GenioEngine()
+# متاح لـ core/proxy.py باش يعرف واش الـ peer موثوق (trusted_networks + CF headers)
+app.state.engine = engine
 
 # أصول الواجهة (CSS/JS) — بلا أسرار، ماشي تحت /api
 app.mount(

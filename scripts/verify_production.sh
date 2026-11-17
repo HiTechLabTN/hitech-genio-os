@@ -149,7 +149,7 @@ head1 "2) الخدمة: /api/status"
   curl -sS --max-time 20 -H "Cookie: genio_session=$TOKEN" "$LOCAL_URL/api/status" -o /tmp/genio-verify-status.json 2>/dev/null || true
 DENIED=$(json_get /tmp/genio-verify-status.json error 2>/dev/null || true)
 case "$DENIED" in
-  *"not reachable"*) fail "السيرفر يرفض طلبات البروكسي: $DENIED — زيد الـ CIDR متاع البروكسي في GENIO_TRUSTED_PROXIES" ;;
+  *"not reachable"*) fail "السيرفر يرفض طلبات البروكسي: $DENIED — تأكّد بلي الطلب فيه هيدر Cloudflare (CF-Connecting-IP) و الـ peer في GENIO_TRUSTED_NETWORKS" ;;
 esac
 if [ "$HAVE_SESSION" = "0" ] && [ -n "$EMAIL" ]; then
   skip "/api/status يحتاج جلسة و الدخول فشل"

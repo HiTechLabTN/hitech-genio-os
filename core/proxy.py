@@ -38,15 +38,37 @@ def peer_host(request: Request) -> str:
 
 
 def from_local_proxy(request: Request) -> bool:
-    """الطلب جاي من بروكسي على نفس الجهاز؟ (هنا فقط نصدّقو الهيدرات)"""
+    """الطلب جاي من بروكسي على نفس الجهاز؟"""
     host = peer_host(request)
     return host in LOOPBACK or host.startswith("127.")
+
+
+def _engine(request: Request):
+    """المحرّك من scope (كان موجود) — باش نعرفو إعدادات الثقة."""
+    app = request.scope.get("app")
+    return getattr(getattr(app, "state", None), "engine", None)
+
+
+def trusted_peer(request: Request) -> bool:
+    """نصدّقو هيدرات البروكسي؟
+
+    loopback، ولا شبكة داخلية مع أثر Cloudflare (tunnel/docker/nginx)،
+    ولا CIDR معرّف في security.trusted_proxies.
+    """
+    if from_local_proxy(request):
+        return True
+    engine = _engine(request)
+    if engine is None:
+        return False
+    from core import security
+
+    return security.client_is_trusted(request, engine)
 
 
 def client_ip(request: Request) -> str:
     """IP الحقيقي متاع الزائر، مع fallback آمن على IP الـ peer."""
     peer = peer_host(request)
-    if not from_local_proxy(request):
+    if not trusted_peer(request):
         return peer
 
     for header in _CLIENT_IP_HEADERS:
@@ -67,7 +89,7 @@ def is_https(request: Request) -> bool:
     """الطلب كان HTTPS عند المتصفّح حتى لو uvicorn يشوف http؟"""
     if request.url.scheme == "https":
         return True
-    if not from_local_proxy(request):
+    if not trusted_peer(request):
         # طلب مباشر من الشبكة: هيدراته ما تتصدّقش
         return False
 
