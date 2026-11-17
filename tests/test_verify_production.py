@@ -37,6 +37,11 @@ def _repo(path: Path) -> Path:
         target = path / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("# placeholder\n", encoding="utf-8")
+    # علامات قاعدة الثقة بالـ Cloudflare headers (السكريبت يتحقّق منها)
+    (path / "core" / "security.py").write_text(
+        "INTERNAL_NETWORKS = ()\ndef cloudflare_evidence(request):\n    return False\n",
+        encoding="utf-8",
+    )
     (path / "file.txt").write_text("one\n", encoding="utf-8")
     _git(path, "add", "-A")
     _git(path, "commit", "-q", "-m", "first")
@@ -73,6 +78,20 @@ def test_code_only_passes_when_head_matches_origin(tmp_path):
     result = _sh([str(SCRIPT), "--code-only"], cwd=repo, env={"GENIO_INSTALL_DIR": str(repo), "PATH": "/usr/bin:/bin"})
     assert result.returncode == 0, result.stdout + result.stderr
     assert "HEAD = origin/main" in result.stdout
+
+
+def test_code_only_fails_when_the_trust_rule_is_missing(tmp_path):
+    """كود قديم في /data/genio-os = 403 على الدومين: لازم يتفشّ
+
+    """
+    repo = _repo(tmp_path / "clone")
+    (repo / "core" / "security.py").write_text("# نسخة قديمة\n", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "old security")
+    _git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
+    result = _sh([str(SCRIPT), "--code-only"], cwd=repo, env={"GENIO_INSTALL_DIR": str(repo), "PATH": "/usr/bin:/bin"})
+    assert result.returncode == 1
+    assert "core/security.py قديم" in result.stdout
 
 
 def test_code_only_fails_when_the_server_is_behind(tmp_path):

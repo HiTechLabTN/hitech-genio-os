@@ -19,8 +19,8 @@ from core import security
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def _client(server, peer: str) -> TestClient:
-    return TestClient(server.app, client=(peer, 50000))
+def _client(server, peer: str, port: int = 50000) -> TestClient:
+    return TestClient(server.app, client=(peer, port))
 
 
 def test_config_ships_with_no_trusted_proxies():
@@ -92,6 +92,41 @@ def test_tunnel_peer_from_10_x_with_access_jwt_is_allowed(server):
     )
     assert response.status_code == 200
     assert response.json()["dir"] == "rtl"
+
+
+@pytest.mark.parametrize(
+    "peer",
+    ["172.17.0.2", "10.0.0.5", "192.168.0.113", "100.64.1.2", "169.254.1.1", "fd00::1", "fe80::1"],
+)
+def test_any_internal_peer_with_cloudflare_headers_is_allowed(server, peer):
+    """بلا حتى إعداد: كل شبكة داخلية + هيدر CF تتصدّق."""
+    response = _client(server, peer).get("/api/i18n/fr", headers={"CF-Connecting-IP": "41.226.10.7"})
+    assert response.status_code == 200, peer
+
+
+@pytest.mark.parametrize("peer", ["41.226.10.7", "8.8.8.8", "203.0.113.5", "198.51.100.7"])
+def test_internet_peer_with_cloudflare_headers_stays_blocked(server, peer):
+    response = _client(server, peer).get(
+        "/api/i18n/fr",
+        headers={"CF-Connecting-IP": "41.226.10.7", "X-Forwarded-For": "41.226.10.7"},
+    )
+    assert response.status_code == 403, peer
+
+
+def test_peer_rewritten_by_uvicorn_is_trusted(server):
+    """uvicorn بعـ --proxy-headers يحطّ port 0: الـ peer الأصلي كان في allowlist."""
+    client = _client(server, "41.226.10.7", port=0)
+    response = client.get(
+        "/api/i18n/ar-TN",
+        headers={"CF-Connecting-IP": "41.226.10.7", "X-Forwarded-For": "41.226.10.7"},
+    )
+    assert response.status_code == 200
+    assert response.json()["dir"] == "rtl"
+
+
+def test_rewritten_peer_without_cloudflare_headers_stays_blocked(server):
+    client = _client(server, "41.226.10.7", port=0)
+    assert client.get("/api/i18n/fr", headers={"X-Forwarded-For": "41.226.10.7"}).status_code == 403
 
 
 def test_private_peer_without_cloudflare_headers_stays_blocked(server):

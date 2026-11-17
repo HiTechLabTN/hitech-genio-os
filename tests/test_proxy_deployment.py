@@ -118,7 +118,11 @@ def test_systemd_unit_runs_from_the_production_directory():
     assert "WorkingDirectory=/data/genio-os" in unit
     assert "Environment=GENIO_DATA_DIR=/data/genio-os" in unit
     assert "--host 127.0.0.1" in unit
-    assert "--forwarded-allow-ips=127.0.0.1" in unit
+    # بلا proxy headers في ExecStart: كان uvicorn يعوّض request.client بعنوان
+    # الزائر، فالـ peer loopback يبان عام و يتصدّ 403. core/proxy.py يعالجهم.
+    exec_start = next(line for line in unit.splitlines() if line.startswith("ExecStart="))
+    assert "--proxy-headers" not in exec_start
+    assert "--forwarded-allow-ips" not in exec_start
 
 
 def test_nginx_vhost_keeps_sse_unbuffered_and_forwards_the_real_ip():

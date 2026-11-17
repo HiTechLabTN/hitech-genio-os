@@ -29,6 +29,19 @@ TRUSTED_NETWORKS_ENV = "GENIO_TRUSTED_NETWORKS"
 
 # شبكات داخلية (docker bridge، شبكة السيرفر، cloudflared محلي…).
 # الطلب منها يولي موثوق **كان** يحمل أثر Cloudflare (CF-Connecting-IP / Cf-Access).
+# شبكات داخلية معروفة (RFC1918 + CGNAT + link-local + IPv6 ULA/link-local).
+# أي peer فيها و الطلب فيه هيدر Cloudflare = hop داخلي (tunnel/docker/nginx)
+# و ما تحتاجش تعرف عنوانو بالضبط.
+INTERNAL_NETWORKS = (
+    "10.0.0.0/8",
+    "172.16.0.0/12",
+    "192.168.0.0/16",
+    "100.64.0.0/10",
+    "169.254.0.0/16",
+    "fc00::/7",
+    "fe80::/10",
+)
+
 DEFAULT_TRUSTED_NETWORKS = ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")
 
 # أي واحد من هالهيدرات يعني الطلب عدّى من Cloudflare قبل ما يوصلنا
@@ -135,6 +148,23 @@ def cloudflare_evidence(request: Request) -> bool:
     return any((request.headers.get(name) or "").strip() for name in CLOUDFLARE_HEADERS)
 
 
+def client_is_internal(request: Request) -> bool:
+    """الـ peer على شبكة داخلية (ماشي عنوان عام من الإنترنت)؟"""
+    host = (request.client.host if request.client else "") or ""
+    return _matches(host, list(INTERNAL_NETWORKS))
+
+
+def client_was_rewritten(request: Request) -> bool:
+    """uvicorn بدّل الـ client من X-Forwarded-For؟
+
+    `--proxy-headers --forwarded-allow-ips=…` يعوّض `scope["client"]` بعنوان
+    الهيدر مع port 0. يعني الـ peer الأصلي كان في الـ allowlist (بروكسي
+    معرّف عند uvicorn)، و الطلب ما جاش مباشرة من الإنترنت.
+    """
+    client = request.client
+    return bool(client) and client.port == 0
+
+
 def _matches(host: str, entries: List[str]) -> bool:
     try:
         address = ipaddress.ip_address(host)
@@ -160,7 +190,15 @@ def client_is_trusted(request: Request, engine: Any) -> bool:
         return True
     if _matches(host, trusted_proxies(engine)):
         return True
-    return _matches(host, trusted_networks(engine)) and cloudflare_evidence(request)
+    if not cloudflare_evidence(request):
+        return False
+    # شبكة داخلية معروفة (بلا إعداد)، ولا peer بدّلو uvicorn من allowlist
+    # متاعو، ولا شبكة صرّح بيها المستعمل في الإعدادات
+    return (
+        client_is_internal(request)
+        or client_was_rewritten(request)
+        or _matches(host, trusted_networks(engine))
+    )
 
 
 def supplied_token(request: Request) -> str:
@@ -187,14 +225,23 @@ def check_api_access(request: Request, engine: Any) -> None:
         return
     if not client_is_trusted(request, engine):
         peer = ((request.client.host if request.client else "") or "?").strip()
-        LOGGER.warning("blocked /api request from untrusted peer %s (%s)", peer, request.url.path)
+        forwarded = (request.headers.get("x-forwarded-for") or "") or "-"
+        LOGGER.warning(
+            "blocked /api request from untrusted peer %s (cf_headers=%s, xff=%s, path=%s)",
+            peer,
+            cloudflare_evidence(request),
+            forwarded,
+            request.url.path,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
-                f"API is not reachable from this address (peer {peer}). "
-                "Traffic must come from loopback, from security.trusted_networks "
-                "with Cloudflare headers, or from security.trusted_proxies. "
-                "Otherwise set security.api_token (GENIO_API_TOKEN)."
+                f"API is not reachable from this address (peer {peer}, "
+                f"cloudflare headers: {'yes' if cloudflare_evidence(request) else 'no'}). "
+                "Traffic must come from loopback, from an internal network or "
+                "security.trusted_networks with Cloudflare headers, or from "
+                "security.trusted_proxies. Otherwise set security.api_token "
+                "(GENIO_API_TOKEN)."
             ),
         )
 

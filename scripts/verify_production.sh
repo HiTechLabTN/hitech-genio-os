@@ -109,6 +109,15 @@ else
     [ -f "$INSTALL_DIR/$f" ] && pass "موجود: $f" || fail "ناقص: $f (نسخة قديمة؟)"
   done
 
+  # الكود الموجود لازم يكون فيه قاعدة الثقة بالـ Cloudflare headers، وإلا
+  # البروكسي يبقى يتصدّ 403 حتى بعد التحديث
+  if grep -q 'INTERNAL_NETWORKS' "$INSTALL_DIR/core/security.py" 2>/dev/null \
+     && grep -q 'cloudflare_evidence' "$INSTALL_DIR/core/security.py" 2>/dev/null; then
+    pass "core/security.py فيه قاعدة الـ Cloudflare headers (trusted networks)"
+  else
+    fail "core/security.py قديم: ما فيهش trusted_networks/cloudflare_evidence — git pull و restart"
+  fi
+
   hooks=$(git -C "$INSTALL_DIR" config --get core.hooksPath 2>/dev/null || echo "")
   [ -n "$hooks" ] && pass "core.hooksPath مضبوط: $hooks" || skip "core.hooksPath غير مضبوط (make hooks)"
 fi

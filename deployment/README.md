@@ -90,15 +90,26 @@ sudo systemctl start genio-os && make verify-prod
 ```
 الطلب مقبول كان:
   1) الـ peer = loopback                      (cloudflared/nginx على نفس الجهاز)
-  2) ولا الـ peer في security.trusted_networks  (10/8، 172.16/12، 192.168/16)
-     و الطلب فيه هيدر Cloudflare واحد على الأقل:
-     CF-Connecting-IP / Cf-Access-Jwt-Assertion / CF-Ray / CF-Visitor / True-Client-IP
-  3) ولا الـ peer في security.trusted_proxies  (CIDR صريح كان تحب تقفل أكثر)
+  2) ولا الـ peer في شبكة داخلية معروفة و الطلب فيه هيدر Cloudflare:
+     10/8، 172.16/12، 192.168/16، 100.64/10 (CGNAT/Tailscale)،
+     169.254/16، fc00::/7، fe80::/10
+  3) ولا uvicorn بدّل الـ client من X-Forwarded-For (port 0) — يعني الـ peer
+     الأصلي كان في allowlist متاع uvicorn، و الطلب فيه هيدر Cloudflare
+  4) ولا الـ peer في security.trusted_networks  (زيد شبكاتك الخاصة)
+  5) ولا الـ peer في security.trusted_proxies  (CIDR صريح كان تحب تقفل أكثر)
+
+هيدرات Cloudflare: CF-Connecting-IP / Cf-Access-Jwt-Assertion / CF-Ray /
+CF-Visitor / True-Client-IP. أما X-Forwarded-For وحدو ما يعدّش دليل.
 ```
 
 يعني tunnel يكلّم من `172.17.0.2` ولا `10.0.0.5` مع `CF-Connecting-IP` → يخدم
 وحدو. أما طلب من `203.0.113.5` حتى لو زيّد `CF-Connecting-IP: 127.0.0.1` → **403**
 (الحماية ما تتبناش على هيدر وحدو).
+
+**مهم:** `ExecStart` متاع uvicorn **ما فيهش** `--proxy-headers`. كان زدتو،
+uvicorn يعوّض `request.client` بعنوان المتصفّح (من `X-Forwarded-For`) قبل ما
+يوصل للفحص، فالطلب يبان جاي من الإنترنت و يترد 403. `core/proxy.py` يتصرّف
+في الهيدرات بوحدو، و كان الـ peer موثوق برك.
 
 ```bash
 # كان الـ tunnel على شبكة غريبة (Tailscale/WireGuard 100.64/10 مثلاً):
