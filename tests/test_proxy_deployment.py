@@ -6,6 +6,7 @@ Cloudflare. بلا هالتصحيح: IP الزائر = 127.0.0.1 للكل، و �
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -123,6 +124,31 @@ def test_systemd_unit_runs_from_the_production_directory():
     exec_start = next(line for line in unit.splitlines() if line.startswith("ExecStart="))
     assert "--proxy-headers" not in exec_start
     assert "--forwarded-allow-ips" not in exec_start
+
+
+def test_render_unit_swaps_the_service_account_only():
+    """User=genio ماشي شرط: السكربت يبدّلو بمالك الـ checkout."""
+    rendered = subprocess.run(
+        ["sh", str(ROOT / "deployment" / "render_unit.sh"),
+         str(ROOT / "deployment" / "genio-os.service"), "nobody"],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    assert "User=nobody" in rendered
+    assert "User=genio" not in rendered
+    exec_start = next(line for line in rendered.splitlines() if line.startswith("ExecStart="))
+    assert exec_start == (
+        "ExecStart=/data/genio-os/venv/bin/python -m uvicorn web.server:app --host 127.0.0.1 --port 8099"
+    )
+
+
+def test_render_unit_refuses_an_account_that_does_not_exist():
+    result = subprocess.run(
+        ["sh", str(ROOT / "deployment" / "render_unit.sh"),
+         str(ROOT / "deployment" / "genio-os.service"), "genio-does-not-exist"],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 2
+    assert "ما فمّاش يوزر" in result.stderr
 
 
 def test_nginx_vhost_keeps_sse_unbuffered_and_forwards_the_real_ip():

@@ -83,6 +83,25 @@ sudo -u genio bash scripts/restore.sh --from latest --into /data/genio-os --forc
 sudo systemctl start genio-os && make verify-prod
 ```
 
+## 3.1) يوزر الخدمة: `User=genio` مو مفروض
+
+الوحدات في `deployment/` مكتوبة بـ `User=genio` / `Group=genio`، و هذا **حساب خدمة
+افتراضي ماشي شرط**. كان الـ checkout في `/data/genio-os` ملك حساب آخر (مثلاً
+`hitech`)، ما تنصّبش الوحدة كيف ما هي: بدّلها بالـ helper:
+
+```bash
+sh deployment/render_unit.sh deployment/genio-os.service hitech      > /tmp/genio-os.service
+sh deployment/render_unit.sh deployment/genio-backup.service hitech  > /tmp/genio-backup.service
+sudo install -m 644 /tmp/genio-os.service /tmp/genio-backup.service /etc/systemd/system/
+```
+
+و إلا اعمل حساب الخدمة مرة وحدة و خلّي الوحدات كيف ما هي:
+
+```bash
+sudo useradd --system --home /data/genio-os --shell /usr/sbin/nologin genio
+sudo chown -R genio: /data/genio-os     # يبدّل ملكية الداتا — قرار متاعك
+```
+
 ## 3.2) الوصول عبر الدومين بلا ما تعرف CIDR متاع البروكسي
 
 ما تحتاجش تحسب CIDR: القاعدة في `core/security.py` —
