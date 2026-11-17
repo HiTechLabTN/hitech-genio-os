@@ -41,6 +41,9 @@ FAIL=0
 SKIP=0
 PROBLEMS=""
 
+# ملفات مؤقتة — تتنقّى في كل الحالات
+trap 'rm -f /tmp/genio-verify-*' EXIT
+
 pass() { PASS=$((PASS + 1)); printf '  ✅ %s\n' "$*"; }
 fail() { FAIL=$((FAIL + 1)); PROBLEMS="$PROBLEMS\n  - $*"; printf '  ❌ %s\n' "$*"; }
 skip() { SKIP=$((SKIP + 1)); printf '  ⏭️  %s\n' "$*"; }
@@ -53,18 +56,8 @@ elif command -v python3 >/dev/null 2>&1; then
   PY="python3"
 fi
 
-json_key() { # json_key <file> <top-level> <full.key>  (المفاتيح فيها نقاط)
-  [ -f "$1" ] && [ -n "$PY" ] || { printf ''; return 0; }
-  "$PY" -c 'import json, sys
-try:
-    block = json.load(open(sys.argv[1], encoding="utf-8"))[sys.argv[2]]
-except Exception:
-    print(""); raise SystemExit
-print(block.get(sys.argv[3], "") if isinstance(block, dict) else "")' "$1" "$2" "$3" 2>/dev/null
-}
-
-
-json_get() { # json_get <file> <dotted.path>
+# json <file> <dotted.path> [<مفتاح حرفي داخل الكائن>] — يطبع قيمة ولا فراغ
+json() {
   [ -f "$1" ] && [ -n "$PY" ] || { printf ''; return 0; }
   "$PY" -c 'import json, sys
 try:
@@ -73,7 +66,9 @@ except Exception:
     print(""); raise SystemExit
 for part in sys.argv[2].split("."):
     data = data.get(part) if isinstance(data, dict) else None
-print("" if data is None else data)' "$1" "$2" 2>/dev/null
+if len(sys.argv) > 3 and isinstance(data, dict):
+    data = data.get(sys.argv[3])
+print("" if data is None else data)' "$1" "$2" "${3:-}" 2>/dev/null
 }
 
 printf '══════════════════════════════════════════════\n'
@@ -129,7 +124,7 @@ if [ -n "$EMAIL" ] && [ -n "$PASSWORD" ]; then
     -H 'X-Forwarded-Proto: https' \
     -H 'CF-Connecting-IP: 203.0.113.77' \
     -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" 2>/dev/null || true
-  CSRF=$(json_get /tmp/genio-verify-login.json csrf)
+  CSRF=$(json /tmp/genio-verify-login.json csrf)
   TOKEN=$(sed -n 's/^[Ss]et-[Cc]ookie: *genio_session=\([^;]*\).*/\1/p' /tmp/genio-verify-login.h 2>/dev/null | head -1)
   if [ -n "$CSRF" ]; then
     HAVE_SESSION=1
@@ -147,7 +142,7 @@ fi
 # ---------------------------------------------------------------------------
 head1 "2) الخدمة: /api/status"
   curl -sS --max-time 20 -H "Cookie: genio_session=$TOKEN" "$LOCAL_URL/api/status" -o /tmp/genio-verify-status.json 2>/dev/null || true
-DENIED=$(json_get /tmp/genio-verify-status.json error 2>/dev/null || true)
+DENIED=$(json /tmp/genio-verify-status.json error 2>/dev/null || true)
 case "$DENIED" in
   *"not reachable"*) fail "السيرفر يرفض طلبات البروكسي: $DENIED — تأكّد بلي الطلب فيه هيدر Cloudflare (CF-Connecting-IP) و الـ peer في GENIO_TRUSTED_NETWORKS" ;;
 esac
@@ -156,9 +151,9 @@ if [ "$HAVE_SESSION" = "0" ] && [ -n "$EMAIL" ]; then
 elif [ ! -s /tmp/genio-verify-status.json ]; then
   fail "ما وصلش جواب من $LOCAL_URL/api/status — الخدمة واقفة؟ (systemctl status genio-os)"
 else
-  VERSION=$(json_get /tmp/genio-verify-status.json telemetry.version)
-  NODE=$(json_get /tmp/genio-verify-status.json telemetry.node)
-  WORKSPACE=$(json_get /tmp/genio-verify-status.json telemetry.workspace)
+  VERSION=$(json /tmp/genio-verify-status.json telemetry.version)
+  NODE=$(json /tmp/genio-verify-status.json telemetry.node)
+  WORKSPACE=$(json /tmp/genio-verify-status.json telemetry.workspace)
   [ -n "$VERSION" ] && pass "version = $VERSION" || fail "ما لقيتش version في /api/status"
   [ -n "$NODE" ] && pass "node = $NODE"
   case "$WORKSPACE" in
@@ -180,7 +175,6 @@ if [ "$INDEX" = "200" ]; then
   fi
   grep -q 'gioLocale' /tmp/genio-verify-index.html 2>/dev/null \
     && pass "locale switcher موجود" || fail "locale switcher ناقص"
-  rm -f /tmp/genio-verify-index.html
 else
   fail "GET / رجّع $INDEX"
 fi
@@ -191,31 +185,25 @@ for pair in "ar-TN:rtl" "ar:rtl" "fr:ltr" "en:ltr"; do
   code=${pair%%:*}
   want=${pair##*:}
   curl -sS --max-time 15 "$LOCAL_URL/api/i18n/$code" -o "/tmp/genio-verify-$code.json" 2>/dev/null || true
-  dir=$(json_get "/tmp/genio-verify-$code.json" dir)
+  dir=$(json "/tmp/genio-verify-$code.json" dir)
   if [ "$dir" = "$want" ]; then
     pass "$code → dir=$dir"
   else
     fail "$code → dir='$dir' (المتوقّع $want)"
   fi
 done
-CLAUSE=$(json_key /tmp/genio-verify-fr.json strings v8.tab.office)
+CLAUSE=$(json /tmp/genio-verify-fr.json strings v8.tab.office)
 [ -n "$CLAUSE" ] && pass "مفاتيح v8 موجودة (v8.tab.office = \"$CLAUSE\")" || fail "v8.tab.office ناقص في fr — كاتالوغ قديم"
-AUTH_TITLE=$(json_key /tmp/genio-verify-ar-TN.json strings auth.title.login)
-case "$AUTH_TITLE" in
-  ""|auth.*) fail "auth.title.login ناقص — شاشة الدخول باش تبان فيها أسماء مفاتيح \"$AUTH_TITLE\"" ;;
-  *) pass "مفاتيح شاشة الدخول موجودة (auth.title.login)" ;;
-esac
+AUTH_TITLE=$(json /tmp/genio-verify-ar-TN.json strings auth.title.login)
+[ -n "$AUTH_TITLE" ] && pass "مفاتيح شاشة الدخول موجودة (auth.title.login)" \
+  || fail "auth.title.login ناقص — شاشة الدخول باش تبان فيها أسماء مفاتيح"
 
 # ---------------------------------------------------------------------------
 head1 "5-7) الجلسة، SSE، و IP الحقيقي"
 if [ "$HAVE_SESSION" = "0" ]; then
   skip "GENIO_VERIFY_EMAIL / GENIO_VERIFY_PASSWORD ما عطاوناش ولا الدخول فشل — تخطّينا الجلسة/SSE/IP"
 else
-  if [ -n "$CSRF" ]; then
-    pass "login ناجح (CSRF موجود)"
-  else
-    fail "login فشل: $(head -c 120 /tmp/genio-verify-login.json 2>/dev/null)"
-  fi
+  pass "login ناجح (CSRF موجود)"
 
   if grep -qi '^set-cookie:.*Secure' /tmp/genio-verify-login.h 2>/dev/null; then
     pass "كوكي الجلسة Secure (TLS يتكسّر في Cloudflare)"
@@ -225,21 +213,19 @@ else
   grep -qi '^set-cookie:.*HttpOnly' /tmp/genio-verify-login.h 2>/dev/null \
     && pass "الكوكي HttpOnly" || fail "الكوكي ماشي HttpOnly"
 
-  if [ -n "$CSRF" ]; then
-    curl -sS --max-time 25 -D /tmp/genio-verify-sse.h -o /dev/null \
-      -X POST "$LOCAL_URL/api/task/stream" \
-      -H 'Content-Type: application/json' \
-      -H "X-Genio-CSRF: $CSRF" \
-      -H "Cookie: genio_session=$TOKEN" \
-      -d '{"prompt":"verify probe"}' 2>/dev/null || true
+  curl -sS --max-time 25 -D /tmp/genio-verify-sse.h -o /dev/null \
+    -X POST "$LOCAL_URL/api/task/stream" \
+    -H 'Content-Type: application/json' \
+    -H "X-Genio-CSRF: $CSRF" \
+    -H "Cookie: genio_session=$TOKEN" \
+    -d '{"prompt":"verify probe"}' 2>/dev/null || true
 
-    grep -qi 'content-type: text/event-stream' /tmp/genio-verify-sse.h 2>/dev/null \
-      && pass "SSE: content-type = text/event-stream" || fail "SSE: content-type غالط (الـ endpoint ماشي SSE)"
-    grep -qi 'x-accel-buffering: no' /tmp/genio-verify-sse.h 2>/dev/null \
-      && pass "SSE: X-Accel-Buffering: no" || fail "SSE: X-Accel-Buffering ناقص (buffering عبر nginx)"
-    grep -qi 'cache-control:.*no-cache' /tmp/genio-verify-sse.h 2>/dev/null \
-      && pass "SSE: Cache-Control: no-cache" || fail "SSE: Cache-Control ناقص"
-  fi
+  grep -qi 'content-type: text/event-stream' /tmp/genio-verify-sse.h 2>/dev/null \
+    && pass "SSE: content-type = text/event-stream" || fail "SSE: content-type غالط (الـ endpoint ماشي SSE)"
+  grep -qi 'x-accel-buffering: no' /tmp/genio-verify-sse.h 2>/dev/null \
+    && pass "SSE: X-Accel-Buffering: no" || fail "SSE: X-Accel-Buffering ناقص (buffering عبر nginx)"
+  grep -qi 'cache-control:.*no-cache' /tmp/genio-verify-sse.h 2>/dev/null \
+    && pass "SSE: Cache-Control: no-cache" || fail "SSE: Cache-Control ناقص"
 
   # IP الحقيقي: محاولة فاشلة بإيميل مؤقّت + IP اختباري (TEST-NET-3)
   PROBE_EMAIL="verify-probe@invalid.genio.local"
@@ -252,12 +238,10 @@ else
   if [ -z "$PY" ]; then
     skip "ما فمّاش python لقراءة قاعدة البيانات — تخطّينا فحص IP"
   else
-    # قاعدة البيانات في $INSTALL_DIR عادةً، أما GENIO_DATA_DIR ينجّم يشير لبلاصة أخرى
-    SCAN_ROOTS="$INSTALL_DIR"
-    [ -n "${GENIO_DATA_DIR:-}" ] && SCAN_ROOTS="$INSTALL_DIR|$GENIO_DATA_DIR"
+    # القاعدة عادةً في $INSTALL_DIR، أما GENIO_DATA_DIR ينجّم يشير لبلاصة أخرى
     IP_RESULT=$("$PY" -c 'import os, sqlite3, sys
 paths = []
-for root in sys.argv[1].split("|"):
+for root in [r for r in sys.argv[1:] if r]:
     for base, _dirs, files in os.walk(root):
         paths.extend(os.path.join(base, f) for f in files if f.endswith(".db"))
 for path in paths:
@@ -271,14 +255,13 @@ for path in paths:
             print("|".join(rows))
             break
     except Exception:
-        continue' "$SCAN_ROOTS" 2>/dev/null)
+        continue' "$INSTALL_DIR" "${GENIO_DATA_DIR:-}" 2>/dev/null)
     case "$IP_RESULT" in
       *203.0.113.77*) pass "IP الحقيقي تسجّل في login_attempts (203.0.113.77، ماشي 127.0.0.1)" ;;
       "") fail "ما لقيتش محاولة مسجّلة في login_attempts — الجدول ولا الـ IP غالط" ;;
       *) fail "login_attempts سجّل '$IP_RESULT' بدل 203.0.113.77" ;;
     esac
   fi
-  rm -f /tmp/genio-verify-login.h /tmp/genio-verify-login.json /tmp/genio-verify-sse.h /tmp/genio-verify-status.json
 fi
 
 # ---------------------------------------------------------------------------

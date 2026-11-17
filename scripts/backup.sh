@@ -2,18 +2,16 @@
 # ==============================================================================
 # 💾 Genio OS — نسخة احتياطية كاملة (قاعدة البيانات + workspace + memory + rag_docs)
 #
-# الاستعمال:
-#   bash scripts/backup.sh                    # مجلّد البيانات الافتراضي
-#   GENIO_DATA_DIR=/data/genio-os bash scripts/backup.sh
-#   make backup                               # نفس الشي
+#   bash scripts/backup.sh                        # مجلّد البيانات الافتراضي
+#   GENIO_DATA_DIR=/data/genio-os make backup
 #
 # المتغيرات:
 #   GENIO_DATA_DIR      مجلّد البيانات (افتراضي: جذر الريبو)
 #   GENIO_BACKUP_DIR    وين تتحفظ النسخ (افتراضي: <DATA>/backups)
-#   GENIO_BACKUP_KEEP   عدد النسخ اللي نخلّيوها (افتراضي: 14؛ 0 = بلا حدّ)
-#   GENIO_BACKUP_DAYS   نحذفو النسخ الأقدم من قدّاش يوم (افتراضي: 30؛ 0 = تعطيل)
+#   GENIO_BACKUP_KEEP   عدد النسخ (افتراضي: 14؛ 0 = بلا حدّ)
+#   GENIO_BACKUP_DAYS   نحذفو الأقدم من N يوم (افتراضي: 30؛ 0 = تعطيل)
 #
-# الخروج: 0 نجح | 1 خطأ | 3 نسخة أخرى تخدم توّا (lock)
+# الخروج: 0 نجح | 1 خطأ | 3 نسخة أخرى تخدم توّا
 # ==============================================================================
 set -euo pipefail
 
@@ -25,104 +23,66 @@ DAYS="${GENIO_BACKUP_DAYS:-30}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 ARCHIVE="${DEST}/genio-${STAMP}.tar.gz"
 
+source "${ROOT}/scripts/_genio_state.sh"
+PY="$(pick_python || true)"
+
 mkdir -p "${DEST}"
-
-# ما نخلّيوش زوز نسخ يتشادّو في نفس الوقت
 exec 9>"${DEST}/.backup.lock"
-if ! flock -n 9; then
-    echo "⏭️  نسخة أخرى تخدم توّا (${DEST}/.backup.lock) — تخطّينا." >&2
-    exit 3
-fi
+flock -n 9 || { echo "⏭️  نسخة أخرى تخدم توّا — تخطّينا." >&2; exit 3; }
 
-TARGETS=()
+ITEMS=()
 for item in config.json memory workspace rag_docs logs; do
-    [ -e "${DATA}/${item}" ] && TARGETS+=("${item}")
+    [ -e "${DATA}/${item}" ] && ITEMS+=("${item}")
 done
-
-if [ "${#TARGETS[@]}" -eq 0 ]; then
-    echo "❌ ما فمّاش حتى شي يتعملو backup في ${DATA}" >&2
-    exit 1
-fi
+[ "${#ITEMS[@]}" -gt 0 ] || { echo "❌ ما فمّاش حتى شي يتعملو backup في ${DATA}" >&2; exit 1; }
 
 STAGE="$(mktemp -d)"
-cleanup() { rm -rf "${STAGE}"; }
-trap cleanup EXIT
-
-DB_SRC="${DATA}/memory/genio.db"
-DB_OK=0
-for item in "${TARGETS[@]}"; do
+trap 'rm -rf "${STAGE}"' EXIT
+for item in "${ITEMS[@]}"; do
     cp -a "${DATA}/${item}" "${STAGE}/${item}"
 done
-
-# قاعدة SQLite تتنسخ بالـ backup API (نسخة متّسقة حتى لو المنصّة تخدم)
-if [ -f "${DB_SRC}" ]; then
-    PY=""
-    [ -x "${ROOT}/venv/bin/python" ] && PY="${ROOT}/venv/bin/python"
-    [ -z "${PY}" ] && command -v python3 >/dev/null 2>&1 && PY="python3"
-    if [ -n "${PY}" ]; then
-        if "${PY}" - "${DB_SRC}" "${STAGE}/memory/genio.db" <<'PY'
-import sqlite3, sys
-src, dst = sys.argv[1], sys.argv[2]
-with sqlite3.connect(f"file:{src}?mode=ro", uri=True) as source:
-    with sqlite3.connect(dst) as target:
-        source.backup(target)
-PY
-        then
-            DB_OK=1
-        fi
-    fi
-    if [ "${DB_OK}" -eq 0 ]; then
-        echo "⚠️  ما قدرتش نعمل snapshot متّسق للقاعدة — خذيت نسخة عادية (cp)." >&2
-    fi
-fi
-
-# عدّ الملفات و الحسابات: المرجع متاع التحقّق بعد الاسترجاع
-PY_COUNT="${PY:-python3}"
-USERS=$("${PY_COUNT}" - "${STAGE}/memory/genio.db" <<'PY' 2>/dev/null || echo 0
-import sqlite3, sys
-try:
-    with sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True) as conn:
-        print(conn.execute("select count(*) from users").fetchone()[0])
-except Exception:
-    print(0)
-PY
-)
-COMMIT="$(git -C "${ROOT}" rev-parse --short HEAD 2>/dev/null || echo "-")"
-
-# ملفات WAL/SHM متاع القاعدة ما تتحسبش و ما تتحفظش (مؤقّتة)
+# ملفات WAL/SHM مؤقّتة: ما تتحفظش
 rm -f "${STAGE}/memory/genio.db-wal" "${STAGE}/memory/genio.db-shm"
 
-FILES=$({ find "${STAGE}/workspace" "${STAGE}/rag_docs" "${STAGE}/memory" \
-    -type f ! -name 'genio.db*' 2>/dev/null || true; } | wc -l | tr -d ' ')
+if [ -n "${PY}" ]; then
+    snapshot_db "${DATA}/memory/genio.db" "${STAGE}/memory/genio.db" \
+        || echo "⚠️  snapshot القاعدة فشل — النسخة عادية (cp)." >&2
+else
+    echo "⚠️  ما فمّاش python — القاعدة تنسخ عادي (cp)." >&2
+fi
 
-"${PY_COUNT}" - "${STAGE}/manifest.json" "${USERS}" "${FILES}" "${COMMIT}" "${STAMP}" <<'PY'
+USERS="$(count_users "${STAGE}" 2>/dev/null || echo 0)"
+FILES="$(count_files "${STAGE}")"
+COMMIT="$(git -C "${ROOT}" rev-parse --short HEAD 2>/dev/null || echo '-')"
+
+if [ -n "${PY}" ]; then
+    "${PY}" - "${STAGE}/manifest.json" "${USERS}" "${FILES}" "${COMMIT}" "${STAMP}" <<'PY'
 import json, sys
 path, users, files, commit, stamp = sys.argv[1:6]
 json.dump(
-    {"created_at": stamp, "commit": commit, "users": int(users), "files": int(files),
-     "includes": ["config.json", "memory/genio.db", "workspace", "rag_docs"]},
+    {"created_at": stamp, "commit": commit, "users": int(users), "files": int(files)},
     open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2,
 )
 PY
+fi
 
 tar -czf "${ARCHIVE}" -C "${STAGE}" .
 ( cd "${DEST}" && sha256sum "$(basename "${ARCHIVE}")" > "$(basename "${ARCHIVE}").sha256" )
+echo "✅ نسخة احتياطية: ${ARCHIVE} ($(du -h "${ARCHIVE}" | cut -f1)) — ${FILES} ملف، ${USERS} حساب، commit ${COMMIT}"
 
-SIZE="$(du -h "${ARCHIVE}" | cut -f1)"
-echo "✅ نسخة احتياطية: ${ARCHIVE} (${SIZE}) — ${FILES} ملف، ${USERS} حساب، commit ${COMMIT}"
+# --- الاحتفاظ: بالعدد ثم بالعمر ------------------------------------------------
+drop() {
+    rm -f "$1" "$1.sha256"
+    echo "🗑️  حذف: $(basename "$1")"
+}
 
-# الاحتفاظ: بالعدد و بالعمر
 if [ "${KEEP}" -gt 0 ]; then
-    ls -1t "${DEST}"/genio-*.tar.gz 2>/dev/null \
-        | tail -n +$((KEEP + 1)) \
-        | while read -r old; do
-              rm -f "${old}" "${old}.sha256"
-              echo "🗑️  حذف (تجاوز ${KEEP} نسخ): $(basename "${old}")"
-          done
+    ls -1t "${DEST}"/genio-*.tar.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
+        drop "${old}"
+    done
 fi
 if [ "${DAYS}" -gt 0 ]; then
-    find "${DEST}" -name 'genio-*.tar.gz' -type f -mtime "+${DAYS}" -print -delete | while read -r old; do
-        rm -f "${old}.sha256"
-        echo "🗑️  حذف (أقدم من ${DAYS} يوم): $(basename "${old}")"
+    find "${DEST}" -maxdepth 1 -name 'genio-*.tar.gz' -type f -mtime "+${DAYS}" 2>/dev/null | while read -r old; do
+        drop "${old}"
     done
 fi
